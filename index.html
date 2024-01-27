@@ -5,7 +5,7 @@
   </head>
   <body>
     <div id="container">
-      <canvas id="pongCanvas" width="500" height="500"></canvas>
+      <canvas id="pongCanvas" width="800" height="800"></canvas>
       <div id="score"></div>
     </div>
 
@@ -26,21 +26,24 @@
 
       #container {
         display: block;
-        margin: auto;
+        width: 100%;
+        max-width: 750px;
       }
 
       #pongCanvas {
         display: block;
-        margin: auto;
         border-radius: 4px;
         overflow: hidden;
+        width: 100%;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
       }
 
       #score {
         text-align: center;
         font-family: monospace;
-        margin-top: 20px;
-        padding-left: 15px;
+        margin-top: 30px;
+        font-size: 20px;
+        padding-left: 20px;
         color: #172b36;
       }
     </style>
