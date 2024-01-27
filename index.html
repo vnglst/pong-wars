@@ -151,14 +151,15 @@
           if (squares[i][j] !== color) {
             squares[i][j] = color;
 
-            let rnd = randomNum(-0.25, 0.25);
-
             // Determine bounce direction based on the angle
             if (Math.abs(Math.cos(angle)) > Math.abs(Math.sin(angle))) {
-              updatedDx = -updatedDx + rnd;
+              updatedDx = -updatedDx;
             } else {
-              updatedDy = -updatedDy + rnd;
+              updatedDy = -updatedDy;
             }
+
+            updatedDx += randomNum(-0.15, 0.15);
+            updatedDy += randomNum(-0.15, 0.15);
           }
         }
       }
