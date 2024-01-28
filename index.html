@@ -86,21 +86,23 @@
     const ctx = canvas.getContext("2d");
     const scoreElement = document.getElementById("score");
 
-    const TEAM1 = colorPalette.MysticMint;
-    const TEAM1_BALL = colorPalette.NocturnalExpedition;
+    const DAY_COLOR = colorPalette.MysticMint;
+    const DAY_BALL_COLOR = colorPalette.NocturnalExpedition;
 
-    const TEAM2 = colorPalette.NocturnalExpedition;
-    const TEAM2_BALL = colorPalette.MysticMint;
+    const NIGHT_COLOR = colorPalette.NocturnalExpedition;
+    const NIGHT_BALL_COLOR = colorPalette.MysticMint;
 
-    const squareSize = 25;
-    const numSquaresX = canvas.width / squareSize;
-    const numSquaresY = canvas.height / squareSize;
+    const SQUARE_SIZE = 25;
+
+    const numSquaresX = canvas.width / SQUARE_SIZE;
+    const numSquaresY = canvas.height / SQUARE_SIZE;
+
     let squares = [];
 
     for (let i = 0; i < numSquaresX; i++) {
       squares[i] = [];
       for (let j = 0; j < numSquaresY; j++) {
-        squares[i][j] = i < numSquaresX / 2 ? TEAM1 : TEAM2;
+        squares[i][j] = i < numSquaresX / 2 ? DAY_COLOR : NIGHT_COLOR;
       }
     }
 
@@ -116,7 +118,7 @@
 
     function drawBall(x, y, color) {
       ctx.beginPath();
-      ctx.arc(x, y, squareSize / 2, 0, Math.PI * 2, false);
+      ctx.arc(x, y, SQUARE_SIZE / 2, 0, Math.PI * 2, false);
       ctx.fillStyle = color;
       ctx.fill();
       ctx.closePath();
@@ -126,7 +128,12 @@
       for (let i = 0; i < numSquaresX; i++) {
         for (let j = 0; j < numSquaresY; j++) {
           ctx.fillStyle = squares[i][j];
-          ctx.fillRect(i * squareSize, j * squareSize, squareSize, squareSize);
+          ctx.fillRect(
+            i * SQUARE_SIZE,
+            j * SQUARE_SIZE,
+            SQUARE_SIZE,
+            SQUARE_SIZE
+          );
         }
       }
     }
@@ -141,11 +148,11 @@
 
       // Check multiple points around the ball's circumference
       for (let angle = 0; angle < Math.PI * 2; angle += Math.PI / 4) {
-        let checkX = x + Math.cos(angle) * (squareSize / 2);
-        let checkY = y + Math.sin(angle) * (squareSize / 2);
+        let checkX = x + Math.cos(angle) * (SQUARE_SIZE / 2);
+        let checkY = y + Math.sin(angle) * (SQUARE_SIZE / 2);
 
-        let i = Math.floor(checkX / squareSize);
-        let j = Math.floor(checkY / squareSize);
+        let i = Math.floor(checkX / SQUARE_SIZE);
+        let j = Math.floor(checkY / SQUARE_SIZE);
 
         if (i >= 0 && i < numSquaresX && j >= 0 && j < numSquaresY) {
           if (squares[i][j] !== color) {
@@ -158,8 +165,7 @@
               updatedDy = -updatedDy;
             }
 
-            // Add some randomness to the bounce
-            // To prevent the balls from getting stuck in a loop
+            // Add some randomness to the bounce to prevent the balls from getting stuck in a loop
             updatedDx += randomNum(-0.01, 0.01);
             updatedDy += randomNum(-0.01, 0.01);
           }
@@ -170,26 +176,29 @@
     }
 
     function updateScoreElement() {
-      let team1Score = 0;
-      let team2Score = 0;
+      let dayScore = 0;
+      let nightScore = 0;
       for (let i = 0; i < numSquaresX; i++) {
         for (let j = 0; j < numSquaresY; j++) {
-          if (squares[i][j] === TEAM1) {
-            team1Score++;
-          } else if (squares[i][j] === TEAM2) {
-            team2Score++;
+          if (squares[i][j] === DAY_COLOR) {
+            dayScore++;
+          } else if (squares[i][j] === NIGHT_COLOR) {
+            nightScore++;
           }
         }
       }
 
-      scoreElement.textContent = `day ${team1Score} | night ${team2Score}`;
+      scoreElement.textContent = `day ${dayScore} | night ${nightScore}`;
     }
 
     function checkBoundaryCollision(x, y, dx, dy) {
-      if (x + dx > canvas.width - squareSize / 2 || x + dx < squareSize / 2) {
+      if (x + dx > canvas.width - SQUARE_SIZE / 2 || x + dx < SQUARE_SIZE / 2) {
         dx = -dx;
       }
-      if (y + dy > canvas.height - squareSize / 2 || y + dy < squareSize / 2) {
+      if (
+        y + dy > canvas.height - SQUARE_SIZE / 2 ||
+        y + dy < SQUARE_SIZE / 2
+      ) {
         dy = -dy;
       }
 
@@ -200,13 +209,13 @@
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       drawSquares();
 
-      drawBall(x1, y1, TEAM1_BALL);
-      let bounce1 = updateSquareAndBounce(x1, y1, dx1, dy1, TEAM1);
+      drawBall(x1, y1, DAY_BALL_COLOR);
+      let bounce1 = updateSquareAndBounce(x1, y1, dx1, dy1, DAY_COLOR);
       dx1 = bounce1.dx;
       dy1 = bounce1.dy;
 
-      drawBall(x2, y2, TEAM2_BALL);
-      let bounce2 = updateSquareAndBounce(x2, y2, dx2, dy2, TEAM2);
+      drawBall(x2, y2, NIGHT_BALL_COLOR);
+      let bounce2 = updateSquareAndBounce(x2, y2, dx2, dy2, NIGHT_COLOR);
       dx2 = bounce2.dx;
       dy2 = bounce2.dy;
 
