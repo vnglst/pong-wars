@@ -39,7 +39,7 @@
       #score {
         font-family: monospace;
         margin-top: 30px;
-        font-size: 18px;
+        font-size: 16px;
         padding-left: 20px;
         color: #172b36;
       }
@@ -78,8 +78,6 @@
       DeepSaffron: "#FF9932",
       NocturnalExpedition: "#114C5A",
       OceanicNoir: "#172B36",
-      Red: "#ff0000",
-      Green: "#00ff00",
     };
 
     // Idea for Pong wars: https://twitter.com/nicolasdnl/status/1749715070928433161
@@ -94,8 +92,11 @@
     const NIGHT_COLOR = colorPalette.NocturnalExpedition;
     const NIGHT_BALL_COLOR = colorPalette.MysticMint;
 
-    const NOON_COLOR = colorPalette.Red;
-    const NOON_BALL_COLOR = colorPalette.Green;
+    const NOON_COLOR = colorPalette.Forsythia;
+    const NOON_BALL_COLOR = colorPalette.DeepSaffron;
+
+    const MIDNIGHT_COLOR = colorPalette.DeepSaffron;
+    const MIDNIGHT_BALL_COLOR = colorPalette.Forsythia;
 
     const SQUARE_SIZE = 25;
 
@@ -107,7 +108,7 @@
     for (let i = 0; i < numSquaresX; i++) {
       squares[i] = [];
       for (let j = 0; j < numSquaresY; j++) {
-        squares[i][j] = i < numSquaresX / 2 ? DAY_COLOR : NIGHT_COLOR; // NOON_COLOR is missing here
+        squares[i][j] = i < numSquaresX / 2 ? DAY_COLOR : NIGHT_COLOR; // NOON_COLOR and MIDNIGHT_COLOR are missing here
       }
     }
 
@@ -125,6 +126,11 @@
     let y3 = canvas.height / 2;
     let dx3 = -12.5;
     let dy3 = 12.5;
+
+    let x4 = (canvas.width / 3) * 3;
+    let y4 = canvas.height / 3;
+    let dx4 = -12.5;
+    let dy4 = 12.5;
 
     let iteration = 0;
 
@@ -191,6 +197,7 @@
       let dayScore = 0;
       let nightScore = 0;
       let noonScore = 0;
+      let midnightScore = 0;
       for (let i = 0; i < numSquaresX; i++) {
         for (let j = 0; j < numSquaresY; j++) {
           if (squares[i][j] === DAY_COLOR) {
@@ -199,11 +206,13 @@
             nightScore++;
           } else if (squares[i][j] === NOON_COLOR) {
             noonScore++;
+          } else if (squares[i][j] === MIDNIGHT_COLOR) {
+            midnightScore++;
           }
         }
       }
 
-      scoreElement.textContent = `day ${dayScore} | night ${nightScore} | noon ${noonScore}`;
+      scoreElement.textContent = `day ${dayScore} | night ${nightScore} | noon ${noonScore} | midnight ${midnightScore}`;
     }
 
     function checkBoundaryCollision(x, y, dx, dy) {
@@ -239,6 +248,11 @@
       dx3 = bounce3.dx;
       dy3 = bounce3.dy;
 
+      drawBall(x4, y4, MIDNIGHT_BALL_COLOR);
+      let bounce4 = updateSquareAndBounce(x4, y4, dx4, dy4, MIDNIGHT_COLOR);
+      dx4 = bounce4.dx;
+      dy4 = bounce4.dy;
+
       let boundary1 = checkBoundaryCollision(x1, y1, dx1, dy1);
       dx1 = boundary1.dx;
       dy1 = boundary1.dy;
@@ -251,12 +265,18 @@
       dx3 = boundary3.dx;
       dy3 = boundary3.dy;
 
+      let boundary4 = checkBoundaryCollision(x4, y4, dx4, dy4);
+      dx4 = boundary4.dx;
+      dy4 = boundary4.dy;
+
       x1 += dx1;
       y1 += dy1;
       x2 += dx2;
       y2 += dy2;
       x3 += dx3;
       y3 += dy3;
+      x4 += dx4;
+      y4 += dy4;
 
       iteration++;
       if (iteration % 1_000 === 0) console.log("interation", iteration);
