@@ -7,7 +7,7 @@
       html {
         height: 100%;
       }
-
+    
       body {
         height: 100%;
         margin: 0;
@@ -15,9 +15,10 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        background: linear-gradient(to bottom, #172b36 0%, #d9e8e3 100%);
+        background: linear-gradient(45deg, #55007F, #FF007F);
+        transition: background 5s linear; /* Smooth background transition over 5 seconds */
       }
-
+    
       #container {
         display: flex;
         width: min(100%, 70vh);
@@ -26,7 +27,7 @@
         flex-direction: column;
         height: 100%;
       }
-
+    
       #pongCanvas {
         display: block;
         border-radius: 4px;
@@ -35,7 +36,7 @@
         margin-top: auto;
         box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
       }
-
+    
       #score {
         font-family: monospace;
         margin-top: 30px;
@@ -43,7 +44,7 @@
         padding-left: 20px;
         color: #172b36;
       }
-
+    
       #made {
         font-family: monospace;
         margin-top: auto;
@@ -51,16 +52,24 @@
         font-size: 12px;
         padding-left: 20px;
       }
-
+    
       #made a {
         color: #172b36;
       }
     </style>
-  </head>
 
   <body>
     <div id="container">
       <canvas id="pongCanvas" width="800" height="800"></canvas>
+      <div>
+      </div>      
+      <div>
+        <button id="addDaySquaresButton">Add 100 Day Squares</button>
+        <button id="addNightSquaresButton">Add 100 Night Squares</button>
+        <button id="resetGameButton">Reset Game</button>
+      </div>
+      <label for="speedSlider">Ball Speed:</label>
+      <input type="range" id="speedSlider" min="1" max="30" value="12.5" step="0.5">
       <div id="score"></div>
       <p id="made">
         made by <a href="https://koenvangilst.nl">Koen van Gilst</a> | source on
@@ -70,7 +79,6 @@
   </body>
 
   <script>
-    // Source palette: https://twitter.com/AlexCristache/status/1738610343499157872
     const colorPalette = {
       ArcticPowder: "#F1F6F4",
       MysticMint: "#D9E8E3",
@@ -79,8 +87,6 @@
       NocturnalExpedition: "#114C5A",
       OceanicNoir: "#172B36",
     };
-
-    // Idea for Pong wars: https://twitter.com/nicolasdnl/status/1749715070928433161
 
     const canvas = document.getElementById("pongCanvas");
     const ctx = canvas.getContext("2d");
@@ -147,50 +153,80 @@
     function updateSquareAndBounce(x, y, dx, dy, color) {
       let updatedDx = dx;
       let updatedDy = dy;
-
-      // Check multiple points around the ball's circumference
+    
       for (let angle = 0; angle < Math.PI * 2; angle += Math.PI / 4) {
         let checkX = x + Math.cos(angle) * (SQUARE_SIZE / 2);
         let checkY = y + Math.sin(angle) * (SQUARE_SIZE / 2);
-
+    
         let i = Math.floor(checkX / SQUARE_SIZE);
         let j = Math.floor(checkY / SQUARE_SIZE);
-
+    
         if (i >= 0 && i < numSquaresX && j >= 0 && j < numSquaresY) {
           if (squares[i][j] !== color) {
             squares[i][j] = color;
-
-            // Determine bounce direction based on the angle
             if (Math.abs(Math.cos(angle)) > Math.abs(Math.sin(angle))) {
               updatedDx = -updatedDx;
             } else {
               updatedDy = -updatedDy;
             }
-
-            // Add some randomness to the bounce to prevent the balls from getting stuck in a loop
+    
             updatedDx += randomNum(-0.01, 0.01);
             updatedDy += randomNum(-0.01, 0.01);
           }
         }
       }
-
+    
       return { dx: updatedDx, dy: updatedDy };
     }
+    
+
+function updateSquareAndBounce(x, y, dx, dy, color) {
+  let updatedDx = dx;
+  let updatedDy = dy;
+
+  for (let angle = 0; angle < Math.PI * 2; angle += Math.PI / 4) {
+    let checkX = x + Math.cos(angle) * (SQUARE_SIZE / 2);
+    let checkY = y + Math.sin(angle) * (SQUARE_SIZE / 2);
+
+    let i = Math.floor(checkX / SQUARE_SIZE);
+    let j = Math.floor(checkY / SQUARE_SIZE);
+
+    if (i >= 0 && i < numSquaresX && j >= 0 && j < numSquaresY) {
+      if (squares[i][j] !== color) {
+        squares[i][j] = color;
+        if (Math.abs(Math.cos(angle)) > Math.abs(Math.sin(angle))) {
+          updatedDx = -updatedDx;
+        } else {
+          updatedDy = -updatedDy;
+        }
+        updatedDx += randomNum(-0.01, 0.01);
+        updatedDy += randomNum(-0.01, 0.01);
+      }
+    }
+  }
+
+  return { dx: updatedDx, dy: updatedDy };
+}
 
     function updateScoreElement() {
-      let dayScore = 0;
-      let nightScore = 0;
+      let totalSquares = numSquaresX * numSquaresY;
+      let dayPercentage = 0;
+      let nightPercentage = 0;
+    
       for (let i = 0; i < numSquaresX; i++) {
         for (let j = 0; j < numSquaresY; j++) {
           if (squares[i][j] === DAY_COLOR) {
-            dayScore++;
+            dayPercentage++;
           } else if (squares[i][j] === NIGHT_COLOR) {
-            nightScore++;
+            nightPercentage++;
           }
         }
       }
-
-      scoreElement.textContent = `day ${dayScore} | night ${nightScore}`;
+    
+      dayPercentage = (dayPercentage / totalSquares) * 100;
+      nightPercentage = (nightPercentage / totalSquares) * 100;
+    
+      scoreElement.textContent = `day ${dayPercentage.toFixed(2)}% | night ${nightPercentage.toFixed(2)}%`;
     }
 
     function checkBoundaryCollision(x, y, dx, dy) {
@@ -235,11 +271,76 @@
       y2 += dy2;
 
       iteration++;
-      if (iteration % 1_000 === 0) console.log("interation", iteration);
+      if (iteration % 1_000 === 0) console.log("iteration", iteration);
 
       updateScoreElement();
 
+      // Smooth background color transition
+      document.body.style.backgroundColor = generateBackgroundColor();
+
       requestAnimationFrame(draw);
+    }
+
+    function generateBackgroundColor() {
+      const currentTime = new Date();
+      const seconds = currentTime.getSeconds();
+      const hue = (seconds % 60) * 6; // Change color every 6 seconds
+      return `hsl(${hue}, 100%, 50%)`;
+    }
+
+    const resetGameButton = document.getElementById("resetGameButton");
+    resetGameButton.addEventListener("click", resetGame);
+
+    function resetGame() {
+      for (let i = 0; i < numSquaresX; i++) {
+        for (let j = 0; j < numSquaresY; j++) {
+          squares[i][j] = i < numSquaresX / 2 ? DAY_COLOR : NIGHT_COLOR;
+        }
+      }
+
+      x1 = canvas.width / 4;
+      y1 = canvas.height / 2;
+      dx1 = 12.5;
+      dy1 = -12.5;
+
+      x2 = (canvas.width / 4) * 3;
+      y2 = canvas.height / 2;
+      dx2 = -12.5;
+      dy2 = 12.5;
+
+      iteration = 0;
+    }
+
+    const addDaySquaresButton = document.getElementById("addDaySquaresButton");
+    const addNightSquaresButton = document.getElementById("addNightSquaresButton");
+
+    addDaySquaresButton.addEventListener("click", addDaySquares);
+    addNightSquaresButton.addEventListener("click", addNightSquares);
+
+    function addDaySquares() {
+      addSquares(100, DAY_COLOR);
+    }
+
+    function addNightSquares() {
+      addSquares(100, NIGHT_COLOR);
+    }
+
+    function addSquares(count, color) {
+      for (let i = 0; i < count; i++) {
+        const randomX = Math.floor(Math.random() * numSquaresX);
+        const randomY = Math.floor(Math.random() * numSquaresY);
+        squares[randomX][randomY] = color;
+      }
+    }
+
+    const speedSlider = document.getElementById("speedSlider");
+    speedSlider.addEventListener("input", updateBallSpeed);
+
+    function updateBallSpeed() {
+      dx1 = parseFloat(speedSlider.value);
+      dy1 = -parseFloat(speedSlider.value);
+      dx2 = -parseFloat(speedSlider.value);
+      dy2 = parseFloat(speedSlider.value);
     }
 
     requestAnimationFrame(draw);
