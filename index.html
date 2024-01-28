@@ -108,13 +108,15 @@
 
     let x1 = canvas.width / 4;
     let y1 = canvas.height / 2;
-    let dx1 = 14;
-    let dy1 = 14;
+    let dx1 = 12.5;
+    let dy1 = -12.5;
 
     let x2 = (canvas.width / 4) * 3;
     let y2 = canvas.height / 2;
-    let dx2 = -14;
-    let dy2 = -14;
+    let dx2 = -12.5;
+    let dy2 = 12.5;
+
+    let iteration = 0;
 
     function drawBall(x, y, color) {
       ctx.beginPath();
@@ -219,8 +221,6 @@
       dx2 = bounce2.dx;
       dy2 = bounce2.dy;
 
-      updateScoreElement();
-
       let boundary1 = checkBoundaryCollision(x1, y1, dx1, dy1);
       dx1 = boundary1.dx;
       dy1 = boundary1.dy;
@@ -233,6 +233,11 @@
       y1 += dy1;
       x2 += dx2;
       y2 += dy2;
+
+      iteration++;
+      if (iteration % 1_000 === 0) console.log("interation", iteration);
+
+      updateScoreElement();
 
       requestAnimationFrame(draw);
     }
