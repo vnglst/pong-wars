@@ -21,7 +21,7 @@
       #container {
         display: flex;
         width: 100%;
-        max-width: 750px;
+        max-width: 600px;
         align-items: center;
         flex-direction: column;
         height: 100%;
@@ -106,13 +106,13 @@
 
     let x1 = canvas.width / 4;
     let y1 = canvas.height / 2;
-    let dx1 = 8;
-    let dy1 = 8;
+    let dx1 = 14;
+    let dy1 = 14;
 
     let x2 = (canvas.width / 4) * 3;
     let y2 = canvas.height / 2;
-    let dx2 = -8;
-    let dy2 = -8;
+    let dx2 = -14;
+    let dy2 = -14;
 
     function drawBall(x, y, color) {
       ctx.beginPath();
@@ -158,8 +158,10 @@
               updatedDy = -updatedDy;
             }
 
-            updatedDx += randomNum(-0.15, 0.15);
-            updatedDy += randomNum(-0.15, 0.15);
+            // Add some randomness to the bounce
+            // To prevent the balls from getting stuck in a loop
+            updatedDx += randomNum(-0.01, 0.01);
+            updatedDy += randomNum(-0.01, 0.01);
           }
         }
       }
