@@ -26,3 +26,13 @@ I love getting feedback and PRs with improvements for this, but I also want to k
 
 - Original post on Mastodon: https://hachyderm.io/@vnglst/111828811496422610
 - On Twitter: https://twitter.com/vnglst/status/1751278052154179770
+
+## Alternate version
+
+If you've created an alternate version of Pong Wars and want to share, feel free to create a PR to add the link here:
+
+- [BBC Micro Bot](https://mastodon.me.uk/@bbcmicrobot/111829277042377169)
+- [Earlier version with padels](https://twitter.com/CasualEffects/status/1390290306206216196)
+- [Pico8](https://www.pico-8-edu.com/?c=AHB4YQHaAT3vsH558QbF5cXZxd3F_Uedc010zTVJ_gCnN3F6-RNE_SuEUXRRUa8tpK9wzE3nZMedcvntx9y1MpRnV4Xp0v3ZTrm0EUzMSQTsOWBuJL5-8C2Cl0gG0vK2sXTtKYyQN81iujMXPUN03Vq0FGXNajPzGtHOXUGgE3zegFI4hIIzoYCyC7ITgzcogmTuIaba7Nqzz48mh5JFxYFgKllpExWB7ZVnKAaH5qvd3SzqTLA0aZrR1Wy0GFywwsjUQhgOznQ3jtx6QCkisOCWvA9ngqFsZXMnFyKJhkynGFYEyZmCBcaIkk5BMF3YVRBX7RcFcZtGQbRQEN9GU_uMVEkSiRNn_aR55AmGqmBbiigfGuqybCXz5QnZI3W_Lutw2Ph4FOMn6Scn0lBgoSsFi3KlgIGpya1iYRY=&g=w-w-w-w1HQHw-w2Xw-w3Xw-w2HQH)
+- [C version](https://github.com/BrunoLevy/TinyPrograms)
+- [Ying Yang](https://twitter.com/a__islam/status/1751485227787034863)
