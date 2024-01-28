@@ -92,6 +92,12 @@
     const TEAM2 = colorPalette.NocturnalExpedition;
     const TEAM2_BALL = colorPalette.MysticMint;
 
+    // average
+    let team1TotalScore = 0;
+    let team2TotalScore = 0;
+
+    let numTotalScores = 0;
+
     const squareSize = 25;
     const numSquaresX = canvas.width / squareSize;
     const numSquaresY = canvas.height / squareSize;
@@ -182,7 +188,15 @@
         }
       }
 
-      scoreElement.textContent = `day ${team1Score} | night ${team2Score}`;
+      numTotalScores++;
+
+      team1TotalScore += team1Score;
+      team2TotalScore += team2Score;
+
+      let team1AvgScore = Math.round(team1TotalScore / numTotalScores, 2);
+      let team2AvgScore = Math.round(team2TotalScore / numTotalScores, 2);
+
+      scoreElement.textContent = `day ${team1Score} (avg. ${team1AvgScore})| night ${team2Score} (avg. ${team2AvgScore})`;
     }
 
     function draw() {
