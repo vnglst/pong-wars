@@ -1,10 +1,8 @@
 # Pong Wars
 
-It's the eternal battle between day and night, good and bad. Written in JavaScript with some HTML & CSS in one index.html. Feel free to reuse the code and create your version.
+It's the eternal battle between day and night, good and bad. Written in JavaScript with some HTML & CSS in one index.html. Feel free to reuse the code and create your own version.
 
 https://github.com/vnglst/pong-wars/assets/3457693/4eae12fa-bdc1-49ee-8b39-c94deb7cb2c8
-
-
 
 ## Development
 
