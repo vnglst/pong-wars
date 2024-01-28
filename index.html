@@ -44,6 +44,14 @@
         color: #172b36;
       }
 
+      #gravity-select {
+        font-family: monospace;
+        margin-top: 30px;
+        font-size: 20px;
+        padding-left: 20px;
+        color: #172b36;
+      }
+
       #made {
         font-family: monospace;
         margin-top: auto;
@@ -62,6 +70,7 @@
     <div id="container">
       <canvas id="pongCanvas" width="800" height="800"></canvas>
       <div id="score"></div>
+      <div id="gravity-select">Apply Gravity: <input type="checkbox" id="gravity-checkbox" /></div>
       <p id="made">
         made by <a href="https://koenvangilst.nl">Koen van Gilst</a> | source on
         <a href="https://github.com/vnglst/pong-wars">github</a>
@@ -207,6 +216,16 @@
       return { dx: dx, dy: dy };
     }
 
+    function capSpeed(dx, dy) {
+      const maxSpeed = 15;
+  	  const speed = Math.sqrt(dx * dx + dy * dy);
+  	  if (speed > maxSpeed) {
+    		dx = (dx / speed) * maxSpeed;
+    		dy = (dy / speed) * maxSpeed;
+  	  }
+  	  return { dx, dy };
+  	}
+
     function draw() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       drawSquares();
@@ -228,6 +247,23 @@
       let boundary2 = checkBoundaryCollision(x2, y2, dx2, dy2);
       dx2 = boundary2.dx;
       dy2 = boundary2.dy;
+
+      const applyGravity = document.getElementById('gravity-checkbox').checked;
+      if (applyGravity) {
+        const gravity = 0.3; // Strength of gravity
+        // Apply gravitational pull towards the center of the canvas
+    	  if (y1 < canvas.height / 2) dy1 += gravity; else dy1 -= gravity;
+    	  if (y2 < canvas.height / 2) dy2 += gravity; else dy2 -= gravity;
+    	  if (x1 < canvas.height / 2) dx1 += gravity; else dx1 -= gravity;
+    	  if (x2 < canvas.height / 2) dx2 += gravity; else dx2 -= gravity;
+    	  // Cap the speed to maxSpeed in case gravity gets crazy
+    	  const cappedSpeed1 = capSpeed(dx1, dy1);
+    	  dx1 = cappedSpeed1.dx;
+    	  dy1 = cappedSpeed1.dy;
+    	  const cappedSpeed2 = capSpeed(dx2, dy2);
+    	  dx2 = cappedSpeed2.dx;
+    	  dy2 = cappedSpeed2.dy;
+      }
 
       x1 += dx1;
       y1 += dy1;
