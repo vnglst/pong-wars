@@ -118,6 +118,25 @@
 
     let iteration = 0;
 
+    let pw = 10;
+    let ph = 200;
+
+    // Paddles
+    let px1 = canvas.width / 32;
+    let py1 = (canvas.height / 2) - (ph / 2);
+    let dpy1 = 20;
+
+    let px2 = (canvas.width / 32) * 31;
+    let py2 = (canvas.height / 2) - (ph / 2);
+    let dpy2 = 20;
+
+    // Keys
+    let u1 = 'q';
+    let d1 = 'a';
+  
+    let u2 = 'p';
+    let d2 = 'l';
+
     function drawBall(x, y, color) {
       ctx.beginPath();
       ctx.arc(x, y, SQUARE_SIZE / 2, 0, Math.PI * 2, false);
@@ -140,6 +159,13 @@
       }
     }
 
+    function drawPaddles() {
+      ctx.fillStyle = TEAM2;
+      ctx.fillRect(px1, py1, pw, ph);
+      ctx.fillStyle = TEAM1;
+      ctx.fillRect(px2, py2, pw, ph);
+    }
+
     function randomNum(min, max) {
       return Math.random() * (max - min) + min;
     }
@@ -147,6 +173,26 @@
     function updateSquareAndBounce(x, y, dx, dy, color) {
       let updatedDx = dx;
       let updatedDy = dy;
+
+      // Bounce off paddles
+      if (x + dx > px1 && x + dx < px1 + pw && y + dy > py1 && y + dy < py1 + ph) {
+        let paddleCenterY = py1 + ph / 2;
+        let distanceFromCenter = y - paddleCenterY;
+        let normalizedDistance = distanceFromCenter / (ph / 2);
+        let bounceAngle = normalizedDistance * (Math.PI / 3);
+        updatedDx = -updatedDx;
+        updatedDy = Math.tan(bounceAngle) * updatedDx;
+      }
+
+      if (x + dx > px2 && x + dx < px2 + pw && y + dy > py2 && y + dy < py2 + ph) {
+        let paddleCenterY = py2 + ph / 2;
+        let distanceFromCenter = y - paddleCenterY;
+        let normalizedDistance = distanceFromCenter / (ph / 2);
+        let bounceAngle = normalizedDistance * (Math.PI / 3);
+        updatedDx = -   updatedDx;
+        updatedDy = - Math.tan(bounceAngle) * updatedDx;
+      }
+
 
       // Check multiple points around the ball's circumference
       for (let angle = 0; angle < Math.PI * 2; angle += Math.PI / 4) {
@@ -210,6 +256,7 @@
     function draw() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       drawSquares();
+      drawPaddles();
 
       drawBall(x1, y1, DAY_BALL_COLOR);
       let bounce1 = updateSquareAndBounce(x1, y1, dx1, dy1, DAY_COLOR);
@@ -241,6 +288,53 @@
 
       requestAnimationFrame(draw);
     }
+
+    let intervals = {
+      p1up: null,
+      p1down: null,
+    };
+
+    window.addEventListener('keydown', function (event) {
+        if (event.key === u1) {
+            if (intervals.p1up !== null) return;
+            intervals.p1up = setInterval(() => { py1 = constrain(py1 - dpy1) }, 15);
+        } else if (event.key === d1) {
+            if (intervals.p1down !== null) return;
+            intervals.p1down = setInterval(() => { py1 = constrain(py1 + dpy1) }, 15);
+        } else if (event.key === u2) {
+            if (intervals.p2up !== null) return;
+            intervals.p2up = setInterval(() => { py2 = constrain(py2 - dpy2) }, 15);
+        } else if (event.key === d2) {
+            if (intervals.p2down !== null) return;
+            intervals.p2down = setInterval(() => { py2 = constrain(py2 + dpy2) }, 15);
+        }
+    });
+
+    function constrain(py) {
+        if (py < 0) {
+            return 0;
+        } else if (py > canvas.height - ph) {
+            return canvas.height - ph;
+        } else {
+            return py;
+        }
+    }
+
+    window.addEventListener('keyup', function (event) {
+        if (event.key === u1 && intervals.p1up !== null) {
+            clearInterval(intervals.p1up);
+            intervals.p1up = null;
+        } else if (event.key === d1 && intervals.p1down !== null) {
+            clearInterval(intervals.p1down);
+            intervals.p1down = null;
+        } else if (event.key === u2 && intervals.p2up !== null) {
+            clearInterval(intervals.p2up);
+            intervals.p2up = null;
+        } else if (event.key === d2 && intervals.p2down !== null) {
+            clearInterval(intervals.p2down);
+            intervals.p2down = null;
+        }
+    });
 
     requestAnimationFrame(draw);
   </script>
