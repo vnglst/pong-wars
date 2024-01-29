@@ -168,9 +168,8 @@
             }
 
             // Add some randomness to the bounce to prevent the balls from getting stuck in a loop
-            const rnd = randomNum(-0.25, 0.25);
-            updatedDx += rnd;
-            updatedDy += rnd;
+            updatedDx += randomNum(-0.25, 0.25);
+            updatedDy += randomNum(-0.25, 0.25);
           }
         }
       }
