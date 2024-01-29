@@ -140,10 +140,6 @@
       }
     }
 
-    function randomNum(min, max) {
-      return Math.random() * (max - min) + min;
-    }
-
     function updateSquareAndBounce(x, y, dx, dy, color) {
       let updatedDx = dx;
       let updatedDy = dy;
@@ -166,10 +162,6 @@
             } else {
               updatedDy = -updatedDy;
             }
-
-            // Add some randomness to the bounce to prevent the balls from getting stuck in a loop
-            updatedDx += randomNum(-0.25, 0.25);
-            updatedDy += randomNum(-0.25, 0.25);
           }
         }
       }
