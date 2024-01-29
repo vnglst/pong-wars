@@ -41,3 +41,4 @@ If you've created an alternate version of Pong Wars and want to share, feel free
 - [C++](https://invent.kde.org/carlschwan/pongwars/-/blob/master/src/scene.cpp?ref_type=heads)
 - [Scratch](https://scratch.mit.edu/projects/957461584)
 - [Python](https://github.com/vocdex/pong-wars-python)
+- [Seasons Pong](https://github.com/hmak-dev/seasons-pong)
