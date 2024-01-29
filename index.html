@@ -79,6 +79,47 @@
   </body>
 
   <script>
+    class Particle {
+  		constructor(x, y, color) {
+  			this.x = x;
+  			this.y = y;
+  			this.color = color;
+  			this.lifeSpan = 200;
+  			this.velocity = {
+  				x: (Math.random() - 0.5) * 5,
+  				y: (Math.random() - 0.5) * 5
+  			};
+  			this.size = Math.random() * 3 + 1;
+  		}
+  
+  		update() {
+  			this.x += this.velocity.x;
+  			this.y += this.velocity.y;
+  			this.lifeSpan -= 1;
+  			this.size *= 0.96;
+  		}
+  
+  		draw(ctx) {
+  			ctx.beginPath();
+  			ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false);
+  			ctx.fillStyle = this.color;
+  			ctx.fill();
+  		}
+  
+  		isAlive() {
+  			return this.lifeSpan > 0;
+  		}
+  	}
+  
+  	function explode(i, j, color) {
+  		const centerX = (i + 0.5) * SQUARE_SIZE;
+  		const centerY = (j + 0.5) * SQUARE_SIZE;
+  		const numParticles = 10;
+  		for (let p = 0; p < numParticles; p++) {
+  			particles.push(new Particle(centerX, centerY, color));
+  		}
+  	}
+    
     // Source palette: https://twitter.com/AlexCristache/status/1738610343499157872
     const colorPalette = {
       ArcticPowder: "#F1F6F4",
@@ -107,6 +148,7 @@
     const numSquaresY = canvas.height / SQUARE_SIZE;
 
     let squares = [];
+    let particles = [];
 
     for (let i = 0; i < numSquaresX; i++) {
       squares[i] = [];
@@ -167,6 +209,7 @@
 
         if (i >= 0 && i < numSquaresX && j >= 0 && j < numSquaresY) {
           if (squares[i][j] !== color) {
+            explode(i,j, squares[i][j]);
             squares[i][j] = color;
 
             // Determine bounce direction based on the angle
@@ -229,6 +272,12 @@
     function draw() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       drawSquares();
+
+      particles = particles.filter(particle => particle.isAlive());  // Clean up dead particles
+    	  particles.forEach(particle => {
+    		particle.update();
+    		particle.draw(ctx);
+  	  });
 
       drawBall(x1, y1, DAY_BALL_COLOR);
       let bounce1 = updateSquareAndBounce(x1, y1, dx1, dy1, DAY_COLOR);
