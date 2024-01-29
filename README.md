@@ -42,4 +42,4 @@ If you've created an alternate version of Pong Wars and want to share, feel free
 - [Scratch](https://scratch.mit.edu/projects/957461584)
 - [Python](https://github.com/vocdex/pong-wars-python)
 - [Seasons Pong](https://github.com/hmak-dev/seasons-pong)
-- [Processing] (https://github.com/riktov/processing-pong-wars)
+- [Processing](https://github.com/riktov/processing-pong-wars)
