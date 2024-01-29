@@ -1,8 +1,16 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Pong wars | Koen van Gilst</title>
+    <meta
+      name="description"
+      content="The eternal battle between day and night, good and bad. Written in JavaScript with some HTML & CSS in one index.html. Feel free to reuse the code and create your own version."
+    />
     <link rel="canonical" href="https://pong-wars.koenvangilst.nl/" />
+    <link rel="author" href="https://koenvangilst.nl" />
+    <meta name="theme-color" content="#172B36" />
+    <meta name="creator" content="Koen van Gilst" />
     <style>
       html {
         height: 100%;
@@ -20,10 +28,10 @@
 
       #container {
         display: flex;
-        width: min(100%, 70vh);
-        max-width: 600px;
         align-items: center;
         flex-direction: column;
+        width: min(70vh, 80%);
+        max-width: 600px;
         height: 100%;
       }
 
@@ -39,17 +47,18 @@
       #score {
         font-family: monospace;
         margin-top: 30px;
-        font-size: 20px;
+        font-size: 16px;
         padding-left: 20px;
         color: #172b36;
       }
 
       #made {
+        text-align: center;
+        line-height: 1.5;
         font-family: monospace;
         margin-top: auto;
         margin-bottom: 20px;
-        font-size: 12px;
-        padding-left: 20px;
+        font-size: 10px;
       }
 
       #made a {
