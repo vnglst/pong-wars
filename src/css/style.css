@@ -1,0 +1,51 @@
+html {
+    height: 100%;
+}
+
+body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(to bottom, #172b36 0%, #d9e8e3 100%);
+}
+
+#container {
+    display: flex;
+    width: min(100%, 70vh);
+    max-width: 600px;
+    align-items: center;
+    flex-direction: column;
+    height: 100%;
+}
+
+#pongCanvas {
+    display: block;
+    border-radius: 4px;
+    overflow: hidden;
+    width: 100%;
+    margin-top: auto;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+}
+
+#score {
+    font-family: monospace;
+    margin-top: 30px;
+    font-size: 20px;
+    padding-left: 20px;
+    color: #172b36;
+}
+
+#made {
+    font-family: monospace;
+    margin-top: auto;
+    margin-bottom: 20px;
+    font-size: 12px;
+    padding-left: 20px;
+}
+
+#made a {
+    color: #172b36;
+}
