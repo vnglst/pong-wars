@@ -1,6 +1,8 @@
 # Pong Wars
 
-It's the eternal battle between day and night, good and bad. Written in JavaScript with some HTML & CSS in one index.html. Feel free to reuse the code and create your version.
+It's the eternal battle between day and night, good and bad. Written in JavaScript with some HTML & CSS in one index.html. Feel free to reuse the code and create your own version.
+
+https://github.com/vnglst/pong-wars/assets/3457693/4eae12fa-bdc1-49ee-8b39-c94deb7cb2c8
 
 ## Development
 
@@ -39,3 +41,6 @@ If you've created an alternate version of Pong Wars and want to share, feel free
 - [C++](https://invent.kde.org/carlschwan/pongwars/-/blob/master/src/scene.cpp?ref_type=heads)
 - [Scratch](https://scratch.mit.edu/projects/957461584)
 - [Pygame version](https://github.com/BjoernSchilberg/py-pong-wars)
+- [Python](https://github.com/vocdex/pong-wars-python)
+- [Seasons Pong](https://github.com/hmak-dev/seasons-pong)
+- [Processing](https://github.com/riktov/processing-pong-wars)
