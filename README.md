@@ -1,4 +1,8 @@
+https://github.com/jareklupinski/pong-wars/assets/2049284/442e64a9-2e12-481d-b373-cae61e449029
+
 # Pong Wars
+
+Now with Juice!
 
 It's the eternal battle between day and night, good and bad. Written in JavaScript with some HTML & CSS in one index.html. Feel free to reuse the code and create your version.
 
