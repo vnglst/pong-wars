@@ -108,6 +108,7 @@
     const MIDNIGHT_BALL_COLOR = colorPalette.Forsythia;
 
     const SQUARE_SIZE = 25;
+    const BALL_SPEED = 25;
 
     const numSquaresX = canvas.width / SQUARE_SIZE;
     const numSquaresY = canvas.height / SQUARE_SIZE;
@@ -128,25 +129,30 @@
       }
     }
 
+    // get random direction
+    const getRandomDX = () => {
+      const dx = Math.random() * BALL_SPEED;
+      return {
+        dx,
+        dy: BALL_SPEED - dx,
+      };
+    };
+
     let x1 = canvas.width / 4;
     let y1 = canvas.height / 4;
-    let dx1 = 12.5;
-    let dy1 = -12.5;
+    let { dx: dx1, dy: dy1 } = getRandomDX();
 
-    let x2 = (canvas.width / 4) * 1;
+    let x2 = canvas.width / 4;
     let y2 = (canvas.height / 4) * 3;
-    let dx2 = -12.5;
-    let dy2 = 12.5;
+    let { dx: dx2, dy: dy2 } = getRandomDX();
 
     let x3 = (canvas.width / 4) * 3;
-    let y3 = (canvas.height / 4) * 1;
-    let dx3 = 12.5;
-    let dy3 = -12.5;
+    let y3 = canvas.height / 4;
+    let { dx: dx3, dy: dy3 } = getRandomDX();
 
     let x4 = (canvas.width / 4) * 3;
     let y4 = (canvas.height / 4) * 3;
-    let dx4 = -12.5;
-    let dy4 = 12.5;
+    let { dx: dx4, dy: dy4 } = getRandomDX();
 
     let iteration = 0;
 
@@ -310,7 +316,7 @@
       y4 += dy4;
 
       iteration++;
-      if (iteration % 1_000 === 0) console.log("interation", iteration);
+      if (iteration % 1_000 === 0) console.log("iteration", iteration);
 
       updateScoreElement();
 
