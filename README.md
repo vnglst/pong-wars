@@ -45,3 +45,5 @@ If you've created an alternate version of Pong Wars and want to share, feel free
 - [Seasons Pong](https://github.com/hmak-dev/seasons-pong)
 - [Processing](https://github.com/riktov/processing-pong-wars)
 - [Flutter](https://github.com/flikkr/flutter_pong_wars)
+- [Rust/Wasm](https://github.com/wasmhub-dev/pong_wars.rs)
+- [Kotlin/Wasm](https://github.com/wasmhub-dev/pong_wars.kt)
