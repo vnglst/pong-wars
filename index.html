@@ -1,248 +1,114 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Pong wars | Koen van Gilst</title>
-    <meta
-      name="description"
-      content="The eternal battle between day and night, good and bad. Written in JavaScript with some HTML & CSS in one index.html. Feel free to reuse the code and create your own version."
-    />
-    <link rel="canonical" href="https://pong-wars.koenvangilst.nl/" />
-    <link rel="author" href="https://koenvangilst.nl" />
-    <meta name="theme-color" content="#172B36" />
-    <meta name="creator" content="Koen van Gilst" />
-    <style>
-      html {
-        height: 100%;
-      }
-
-      body {
-        height: 100%;
-        margin: 0;
-        padding: 0;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        background: linear-gradient(to bottom, #172b36 0%, #d9e8e3 100%);
-      }
-
-      #container {
-        display: flex;
-        align-items: center;
-        flex-direction: column;
-        width: min(70vh, 80%);
-        max-width: 600px;
-        height: 100%;
-      }
-
-      #pongCanvas {
-        display: block;
-        border-radius: 4px;
-        overflow: hidden;
-        width: 100%;
-        margin-top: auto;
-        box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
-      }
-
-      #score {
-        font-family: monospace;
-        margin-top: 30px;
-        font-size: 16px;
-        padding-left: 20px;
-        color: #172b36;
-      }
-
-      #made {
-        text-align: center;
-        line-height: 1.5;
-        font-family: monospace;
-        margin-top: auto;
-        margin-bottom: 20px;
-        font-size: 10px;
-      }
-
-      #made a {
-        color: #172b36;
-      }
-    </style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dynamic Voronoi Diagram</title>
   </head>
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
 
+    canvas {
+      border-radius: 5px;
+    }
+  </style>
   <body>
-    <div id="container">
-      <canvas id="pongCanvas" width="800" height="800"></canvas>
-      <div id="score"></div>
-      <p id="made">
-        made by <a href="https://koenvangilst.nl">Koen van Gilst</a> | source on
-        <a href="https://github.com/vnglst/pong-wars">github</a>
-      </p>
-    </div>
+    <canvas id="voronoiCanvas" width="600" height="600"></canvas>
   </body>
-
   <script>
-    // Source palette: https://twitter.com/AlexCristache/status/1738610343499157872
-    const colorPalette = {
-      ArcticPowder: "#F1F6F4",
-      MysticMint: "#D9E8E3",
-      Forsythia: "#FFC801",
-      DeepSaffron: "#FF9932",
-      NocturnalExpedition: "#114C5A",
-      OceanicNoir: "#172B36",
+    let colorPalette = {
+      "Spring Cream": "#EFF1E4",
+      "Green Tea Pudding": "#C5E1A5",
+      // "Le Bon Dijon": "#E4CB6B",
+      "Fake Fern": "#529875",
+      "Shadow Pine": "#356454",
+      "Lacquer Green": "#1B322C",
     };
 
-    // Idea for Pong wars: https://twitter.com/nicolasdnl/status/1749715070928433161
+    let movingPoint = { x: 300, y: 200, color: "#E4CB6B" }; // Initial position of the moving point
+    let speed = 5; // Speed of the moving point
+    let angle = Math.random() * Math.PI * 2;
 
-    const canvas = document.getElementById("pongCanvas");
+    function updateMovingPoint() {
+      // Randomly update direction - for simplicity
+      speed += (Math.random() - 0.25) * 0.25;
+      angle += (Math.random() - 0.25) * 0.25;
+
+      movingPoint.x += Math.cos(angle) * speed;
+      movingPoint.y += Math.sin(angle) * speed;
+
+      // Keep the moving point within canvas bounds of 600 x 600, using modulo
+      movingPoint.x = (movingPoint.x + 600) % 600;
+      movingPoint.y = (movingPoint.y + 600) % 600;
+    }
+
+    const canvas = document.getElementById("voronoiCanvas");
     const ctx = canvas.getContext("2d");
-    const scoreElement = document.getElementById("score");
+    const width = canvas.width;
+    const height = canvas.height;
+    const numPoints = 30;
+    const points = [];
 
-    const DAY_COLOR = colorPalette.MysticMint;
-    const DAY_BALL_COLOR = colorPalette.NocturnalExpedition;
-
-    const NIGHT_COLOR = colorPalette.NocturnalExpedition;
-    const NIGHT_BALL_COLOR = colorPalette.MysticMint;
-
-    const SQUARE_SIZE = 25;
-
-    const numSquaresX = canvas.width / SQUARE_SIZE;
-    const numSquaresY = canvas.height / SQUARE_SIZE;
-
-    let squares = [];
-
-    for (let i = 0; i < numSquaresX; i++) {
-      squares[i] = [];
-      for (let j = 0; j < numSquaresY; j++) {
-        squares[i][j] = i < numSquaresX / 2 ? DAY_COLOR : NIGHT_COLOR;
-      }
+    // Generate random seed points
+    for (let i = 0; i < numPoints; i++) {
+      points.push({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        color:
+          Object.values(colorPalette)[
+            Math.floor(Math.random() * Object.values(colorPalette).length)
+          ],
+        // `rgb(${Math.floor(Math.random() * 256)}, ${Math.floor(
+        //   Math.random() * 256
+        // )}, ${Math.floor(Math.random() * 256)})`,
+      });
     }
 
-    let x1 = canvas.width / 4;
-    let y1 = canvas.height / 2;
-    let dx1 = 12.5;
-    let dy1 = -12.5;
-
-    let x2 = (canvas.width / 4) * 3;
-    let y2 = canvas.height / 2;
-    let dx2 = -12.5;
-    let dy2 = 12.5;
-
-    let iteration = 0;
-
-    function drawBall(x, y, color) {
-      ctx.beginPath();
-      ctx.arc(x, y, SQUARE_SIZE / 2, 0, Math.PI * 2, false);
-      ctx.fillStyle = color;
-      ctx.fill();
-      ctx.closePath();
+    function distance(x1, y1, x2, y2) {
+      return Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
     }
 
-    function drawSquares() {
-      for (let i = 0; i < numSquaresX; i++) {
-        for (let j = 0; j < numSquaresY; j++) {
-          ctx.fillStyle = squares[i][j];
-          ctx.fillRect(
-            i * SQUARE_SIZE,
-            j * SQUARE_SIZE,
-            SQUARE_SIZE,
-            SQUARE_SIZE
-          );
-        }
-      }
-    }
+    function drawVoronoi() {
+      ctx.clearRect(0, 0, width, height); // Clear the canvas
 
-    function updateSquareAndBounce(x, y, dx, dy, color) {
-      let updatedDx = dx;
-      let updatedDy = dy;
+      for (let x = 0; x < width; x++) {
+        for (let y = 0; y < height; y++) {
+          let closestPoint = points[0];
+          let minDist = distance(x, y, points[0].x, points[0].y);
 
-      // Check multiple points around the ball's circumference
-      for (let angle = 0; angle < Math.PI * 2; angle += Math.PI / 4) {
-        let checkX = x + Math.cos(angle) * (SQUARE_SIZE / 2);
-        let checkY = y + Math.sin(angle) * (SQUARE_SIZE / 2);
+          // Include moving point in distance calculation
+          points.push(movingPoint);
 
-        let i = Math.floor(checkX / SQUARE_SIZE);
-        let j = Math.floor(checkY / SQUARE_SIZE);
-
-        if (i >= 0 && i < numSquaresX && j >= 0 && j < numSquaresY) {
-          if (squares[i][j] !== color) {
-            squares[i][j] = color;
-
-            // Determine bounce direction based on the angle
-            if (Math.abs(Math.cos(angle)) > Math.abs(Math.sin(angle))) {
-              updatedDx = -updatedDx;
-            } else {
-              updatedDy = -updatedDy;
+          for (let i = 1; i <= numPoints; i++) {
+            const d = distance(x, y, points[i].x, points[i].y);
+            if (d < minDist) {
+              closestPoint = points[i];
+              minDist = d;
             }
           }
+
+          // Remove moving point after calculation
+          points.pop();
+
+          ctx.fillStyle = closestPoint.color;
+          ctx.fillRect(x, y, 1, 1);
         }
       }
-
-      return { dx: updatedDx, dy: updatedDy };
     }
 
-    function updateScoreElement() {
-      let dayScore = 0;
-      let nightScore = 0;
-      for (let i = 0; i < numSquaresX; i++) {
-        for (let j = 0; j < numSquaresY; j++) {
-          if (squares[i][j] === DAY_COLOR) {
-            dayScore++;
-          } else if (squares[i][j] === NIGHT_COLOR) {
-            nightScore++;
-          }
-        }
-      }
-
-      scoreElement.textContent = `day ${dayScore} | night ${nightScore}`;
+    // Update and redraw loop
+    function animate() {
+      updateMovingPoint(); // Update the position of the moving point
+      drawVoronoi(); // Redraw the Voronoi diagram
+      requestAnimationFrame(animate); // Repeat
     }
 
-    function checkBoundaryCollision(x, y, dx, dy) {
-      if (x + dx > canvas.width - SQUARE_SIZE / 2 || x + dx < SQUARE_SIZE / 2) {
-        dx = -dx;
-      }
-      if (
-        y + dy > canvas.height - SQUARE_SIZE / 2 ||
-        y + dy < SQUARE_SIZE / 2
-      ) {
-        dy = -dy;
-      }
-
-      return { dx: dx, dy: dy };
-    }
-
-    function draw() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      drawSquares();
-
-      drawBall(x1, y1, DAY_BALL_COLOR);
-      let bounce1 = updateSquareAndBounce(x1, y1, dx1, dy1, DAY_COLOR);
-      dx1 = bounce1.dx;
-      dy1 = bounce1.dy;
-
-      drawBall(x2, y2, NIGHT_BALL_COLOR);
-      let bounce2 = updateSquareAndBounce(x2, y2, dx2, dy2, NIGHT_COLOR);
-      dx2 = bounce2.dx;
-      dy2 = bounce2.dy;
-
-      let boundary1 = checkBoundaryCollision(x1, y1, dx1, dy1);
-      dx1 = boundary1.dx;
-      dy1 = boundary1.dy;
-
-      let boundary2 = checkBoundaryCollision(x2, y2, dx2, dy2);
-      dx2 = boundary2.dx;
-      dy2 = boundary2.dy;
-
-      x1 += dx1;
-      y1 += dy1;
-      x2 += dx2;
-      y2 += dy2;
-
-      iteration++;
-      if (iteration % 1_000 === 0) console.log("iteration", iteration);
-
-      updateScoreElement();
-
-      requestAnimationFrame(draw);
-    }
-
-    requestAnimationFrame(draw);
+    animate();
   </script>
 </html>
