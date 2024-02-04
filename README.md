@@ -48,3 +48,4 @@ If you've created an alternate version of Pong Wars and want to share, feel free
 - [Rust/Wasm](https://github.com/wasmhub-dev/pong_wars.rs)
 - [Kotlin/Wasm](https://github.com/wasmhub-dev/pong_wars.kt)
 - [Atari 2600](https://forums.atariage.com/topic/360475-pong-wars-atari-2600)
+- [Eternal Bounce Battle (GDevelop)](https://gd.games/victrisgames/eternal-bounce-battle)
