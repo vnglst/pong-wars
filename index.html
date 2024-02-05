@@ -47,7 +47,7 @@
       #score {
         font-family: monospace;
         margin-top: 30px;
-        font-size: 16px;
+        font-size: 14px;
         padding-left: 20px;
         color: #172b36;
       }
@@ -67,7 +67,7 @@
     </style>
   </head>
 
-  <body>
+  <body id="body">
     <div id="container">
       <canvas id="pongCanvas" width="800" height="800"></canvas>
       <div id="score"></div>
@@ -101,7 +101,14 @@
     const NIGHT_COLOR = colorPalette.NocturnalExpedition;
     const NIGHT_BALL_COLOR = colorPalette.MysticMint;
 
+    const NOON_COLOR = colorPalette.Forsythia;
+    const NOON_BALL_COLOR = colorPalette.DeepSaffron;
+
+    const MIDNIGHT_COLOR = colorPalette.DeepSaffron;
+    const MIDNIGHT_BALL_COLOR = colorPalette.Forsythia;
+
     const SQUARE_SIZE = 25;
+    const BALL_SPEED = 25;
 
     const numSquaresX = canvas.width / SQUARE_SIZE;
     const numSquaresY = canvas.height / SQUARE_SIZE;
@@ -111,19 +118,41 @@
     for (let i = 0; i < numSquaresX; i++) {
       squares[i] = [];
       for (let j = 0; j < numSquaresY; j++) {
-        squares[i][j] = i < numSquaresX / 2 ? DAY_COLOR : NIGHT_COLOR;
+        squares[i][j] =
+          i < numSquaresX / 2
+            ? j < numSquaresY / 2
+              ? DAY_COLOR
+              : NIGHT_COLOR
+            : j < numSquaresY / 2
+            ? NOON_COLOR
+            : MIDNIGHT_COLOR;
       }
     }
 
-    let x1 = canvas.width / 4;
-    let y1 = canvas.height / 2;
-    let dx1 = 12.5;
-    let dy1 = -12.5;
+    // get random direction
+    const getRandomDX = () => {
+      const dx = Math.random() * BALL_SPEED;
+      return {
+        dx,
+        dy: BALL_SPEED - dx,
+      };
+    };
 
-    let x2 = (canvas.width / 4) * 3;
-    let y2 = canvas.height / 2;
-    let dx2 = -12.5;
-    let dy2 = 12.5;
+    let x1 = canvas.width / 4;
+    let y1 = canvas.height / 4;
+    let { dx: dx1, dy: dy1 } = getRandomDX();
+
+    let x2 = canvas.width / 4;
+    let y2 = (canvas.height / 4) * 3;
+    let { dx: dx2, dy: dy2 } = getRandomDX();
+
+    let x3 = (canvas.width / 4) * 3;
+    let y3 = canvas.height / 4;
+    let { dx: dx3, dy: dy3 } = getRandomDX();
+
+    let x4 = (canvas.width / 4) * 3;
+    let y4 = (canvas.height / 4) * 3;
+    let { dx: dx4, dy: dy4 } = getRandomDX();
 
     let iteration = 0;
 
@@ -181,17 +210,46 @@
     function updateScoreElement() {
       let dayScore = 0;
       let nightScore = 0;
+      let noonScore = 0;
+      let midNightScore = 0;
+
       for (let i = 0; i < numSquaresX; i++) {
         for (let j = 0; j < numSquaresY; j++) {
           if (squares[i][j] === DAY_COLOR) {
             dayScore++;
           } else if (squares[i][j] === NIGHT_COLOR) {
             nightScore++;
+          } else if (squares[i][j] === NOON_COLOR) {
+            noonScore++;
+          } else if (squares[i][j] === MIDNIGHT_COLOR) {
+            midNightScore++;
           }
         }
       }
 
-      scoreElement.textContent = `day ${dayScore} | night ${nightScore}`;
+      const totalScore = numSquaresX * numSquaresY;
+      const dayPercent = (dayScore / totalScore) * 100;
+      const nightPercent = (nightScore / totalScore) * 100;
+      const noonPercent = (noonScore / totalScore) * 100;
+      const midNightPercent = (midNightScore / totalScore) * 100;
+      scoreElement.textContent = `day ${dayScore}(${Math.floor(
+        dayPercent
+      )}%) | night ${nightScore}(${Math.floor(
+        nightPercent
+      )}%) | noon ${noonScore}(${Math.floor(
+        noonPercent
+      )}%) | midNight ${midNightScore}(${Math.floor(midNightPercent)}%)`;
+      updateBodyGradient(dayPercent, nightPercent);
+    }
+    function updateBodyGradient(dayPercent, nightPercent) {
+      document.body.style.setProperty(
+        "background",
+        `linear-gradient(90deg,
+        ${DAY_COLOR},
+        ${NOON_COLOR} ${dayPercent}%,
+        ${MIDNIGHT_COLOR} ${100 - nightPercent}%,
+        ${NIGHT_COLOR} 100%)`
+      );
     }
 
     function checkBoundaryCollision(x, y, dx, dy) {
@@ -222,6 +280,16 @@
       dx2 = bounce2.dx;
       dy2 = bounce2.dy;
 
+      drawBall(x3, y3, NOON_BALL_COLOR);
+      let bounce3 = updateSquareAndBounce(x3, y3, dx3, dy3, NOON_COLOR);
+      dx3 = bounce3.dx;
+      dy3 = bounce3.dy;
+
+      drawBall(x4, y4, MIDNIGHT_BALL_COLOR);
+      let bounce4 = updateSquareAndBounce(x4, y4, dx4, dy4, MIDNIGHT_COLOR);
+      dx4 = bounce4.dx;
+      dy4 = bounce4.dy;
+
       let boundary1 = checkBoundaryCollision(x1, y1, dx1, dy1);
       dx1 = boundary1.dx;
       dy1 = boundary1.dy;
@@ -230,10 +298,22 @@
       dx2 = boundary2.dx;
       dy2 = boundary2.dy;
 
+      let boundary3 = checkBoundaryCollision(x3, y3, dx3, dy3);
+      dx3 = boundary3.dx;
+      dy3 = boundary3.dy;
+
+      let boundary4 = checkBoundaryCollision(x4, y4, dx4, dy4);
+      dx4 = boundary4.dx;
+      dy4 = boundary4.dy;
+
       x1 += dx1;
       y1 += dy1;
       x2 += dx2;
       y2 += dy2;
+      x3 += dx3;
+      y3 += dy3;
+      x4 += dx4;
+      y4 += dy4;
 
       iteration++;
       if (iteration % 1_000 === 0) console.log("iteration", iteration);
