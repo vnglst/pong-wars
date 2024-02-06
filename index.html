@@ -35,7 +35,7 @@
         height: 100%;
       }
 
-      #pongCanvas {
+      canvas {
         display: block;
         border-radius: 4px;
         overflow: hidden;
@@ -69,8 +69,9 @@
 
   <body>
     <div id="container">
-      <canvas id="pongCanvas" width="700" height="800"></canvas>
+      <canvas id="pongCanvas" width="800" height="800"></canvas>
       <div id="score"></div>
+      <canvas id="graph" width="1200" height="150"></canvas>
       <p id="made">
         made by <a href="https://koenvangilst.nl">Koen van Gilst</a> | source on
         <a href="https://github.com/vnglst/pong-wars">github</a>
@@ -92,7 +93,9 @@
     // Idea for Pong wars: https://twitter.com/nicolasdnl/status/1749715070928433161
 
     const canvas = document.getElementById("pongCanvas");
-    const ctx = canvas.getContext("2d", { willReadFrequently: true });
+    const graph = document.getElementById("graph");
+    const ctx = canvas.getContext("2d");
+    const ctxGraph = graph.getContext("2d", { willReadFrequently: true });
     const scoreElement = document.getElementById("score");
 
     const DAY_COLOR = colorPalette.MysticMint;
@@ -102,10 +105,9 @@
     const NIGHT_BALL_COLOR = colorPalette.MysticMint;
 
     const SQUARE_SIZE = 25;
-    const fieldHeight = canvas.width;
 
     const numSquaresX = canvas.width / SQUARE_SIZE;
-    const numSquaresY = fieldHeight / SQUARE_SIZE;
+    const numSquaresY = canvas.height / SQUARE_SIZE;
 
     let squares = [];
 
@@ -117,12 +119,12 @@
     }
 
     let x1 = canvas.width / 4;
-    let y1 = fieldHeight / 2;
+    let y1 = canvas.height / 2;
     let dx1 = 12.5;
     let dy1 = -12.5;
 
     let x2 = (canvas.width / 4) * 3;
-    let y2 = fieldHeight / 2;
+    let y2 = canvas.height / 2;
     let dx2 = -12.5;
     let dy2 = 12.5;
 
@@ -197,32 +199,34 @@
         return;
       }
 
-      const graphHeight = canvas.height - fieldHeight;
-      const dayPart = graphHeight * dayScore / (numSquaresX * numSquaresY);
+      const dayPart = graph.height * dayScore / (numSquaresX * numSquaresY);
 
-      const imageData = ctx.getImageData(1, fieldHeight, canvas.width, graphHeight);
-      ctx.putImageData(imageData, 0, fieldHeight);
+      const imageData = ctxGraph.getImageData(1, 0, graph.width, graph.height);
+      ctxGraph.putImageData(imageData, 0, 0);
 
-      ctx.strokeStyle = DAY_COLOR;
-      ctx.beginPath();
-      ctx.moveTo(canvas.width, fieldHeight);
-      ctx.lineTo(canvas.width, fieldHeight + dayPart);
-      ctx.lineWidth = 2;
-      ctx.stroke();
+      ctxGraph.strokeStyle = DAY_COLOR;
+      ctxGraph.beginPath();
+      ctxGraph.moveTo(graph.width, 0);
+      ctxGraph.lineTo(graph.width, dayPart);
+      ctxGraph.lineWidth = 2;
+      ctxGraph.stroke();
 
-      ctx.strokeStyle = NIGHT_COLOR;
-      ctx.beginPath();
-      ctx.moveTo(canvas.width, fieldHeight + dayPart);
-      ctx.lineTo(canvas.width, canvas.height);
-      ctx.lineWidth = 2;
-      ctx.stroke();
+      ctxGraph.strokeStyle = NIGHT_COLOR;
+      ctxGraph.beginPath();
+      ctxGraph.moveTo(graph.width, dayPart);
+      ctxGraph.lineTo(graph.width, graph.height);
+      ctxGraph.lineWidth = 2;
+      ctxGraph.stroke();
     }
 
     function checkBoundaryCollision(x, y, dx, dy) {
       if (x + dx > canvas.width - SQUARE_SIZE / 2 || x + dx < SQUARE_SIZE / 2) {
         dx = -dx;
       }
-      if (y + dy > fieldHeight - SQUARE_SIZE / 2 || y + dy < SQUARE_SIZE / 2) {
+      if (
+        y + dy > canvas.height - SQUARE_SIZE / 2 ||
+        y + dy < SQUARE_SIZE / 2
+      ) {
         dy = -dy;
       }
 
@@ -230,7 +234,7 @@
     }
 
     function draw() {
-      ctx.clearRect(0, 0, canvas.width, fieldHeight);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
       drawSquares();
 
       drawBall(x1, y1, DAY_BALL_COLOR);
