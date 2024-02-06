@@ -107,11 +107,13 @@
     const numSquaresY = canvas.height / SQUARE_SIZE;
 
     let squares = [];
+    let counts = {[DAY_COLOR]: 0, [NIGHT_COLOR]: 0};
 
     for (let i = 0; i < numSquaresX; i++) {
       squares[i] = [];
       for (let j = 0; j < numSquaresY; j++) {
         squares[i][j] = i < numSquaresX / 2 ? DAY_COLOR : NIGHT_COLOR;
+        counts[squares[i][j]]++;
       }
     }
 
@@ -160,11 +162,15 @@
 
       if (ci >= 0 && ci < numSquaresX && cj >= 0 && cj < numSquaresY) {
         if (squares[ci][j] !== color) {
+          counts[squares[ci][j]]--;
           squares[ci][j] = color;
+          counts[color]++;
           dx = -dx;
         }
         if (squares[i][cj] !== color) {
+          counts[squares[i][cj]]--;
           squares[i][cj] = color;
+          counts[color]++;
           dy = -dy;
         }
       }
@@ -173,18 +179,8 @@
     }
 
     function updateScoreElement() {
-      let dayScore = 0;
-      let nightScore = 0;
-      for (let i = 0; i < numSquaresX; i++) {
-        for (let j = 0; j < numSquaresY; j++) {
-          if (squares[i][j] === DAY_COLOR) {
-            dayScore++;
-          } else if (squares[i][j] === NIGHT_COLOR) {
-            nightScore++;
-          }
-        }
-      }
-
+      let dayScore = counts[DAY_COLOR];
+      let nightScore = counts[NIGHT_COLOR];
       scoreElement.textContent = `day ${dayScore} | night ${nightScore}`;
     }
 
