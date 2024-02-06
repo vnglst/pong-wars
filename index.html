@@ -150,32 +150,26 @@
     }
 
     function updateSquareAndBounce(x, y, dx, dy, color) {
-      let updatedDx = dx;
-      let updatedDy = dy;
+      let checkX = x + dx;
+      let checkY = y + dy;
 
-      // Check multiple points around the ball's circumference
-      for (let angle = 0; angle < Math.PI * 2; angle += Math.PI / 4) {
-        let checkX = x + Math.cos(angle) * (SQUARE_SIZE / 2);
-        let checkY = y + Math.sin(angle) * (SQUARE_SIZE / 2);
+      let i = Math.floor(x / SQUARE_SIZE);
+      let j = Math.floor(y / SQUARE_SIZE);
+      let ci = Math.floor(checkX / SQUARE_SIZE);
+      let cj = Math.floor(checkY / SQUARE_SIZE);
 
-        let i = Math.floor(checkX / SQUARE_SIZE);
-        let j = Math.floor(checkY / SQUARE_SIZE);
-
-        if (i >= 0 && i < numSquaresX && j >= 0 && j < numSquaresY) {
-          if (squares[i][j] !== color) {
-            squares[i][j] = color;
-
-            // Determine bounce direction based on the angle
-            if (Math.abs(Math.cos(angle)) > Math.abs(Math.sin(angle))) {
-              updatedDx = -updatedDx;
-            } else {
-              updatedDy = -updatedDy;
-            }
-          }
+      if (ci >= 0 && ci < numSquaresX && cj >= 0 && cj < numSquaresY) {
+        if (squares[ci][j] !== color) {
+          squares[ci][j] = color;
+          dx = -dx;
+        }
+        if (squares[i][cj] !== color) {
+          squares[i][cj] = color;
+          dy = -dy;
         }
       }
 
-      return { dx: updatedDx, dy: updatedDy };
+      return { dx, dy };
     }
 
     function updateScoreElement() {
