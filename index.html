@@ -35,7 +35,7 @@
         height: 100%;
       }
 
-      #pongCanvas {
+      canvas {
         display: block;
         border-radius: 4px;
         overflow: hidden;
@@ -71,6 +71,7 @@
     <div id="container">
       <canvas id="pongCanvas" width="800" height="800"></canvas>
       <div id="score"></div>
+      <canvas id="graph" width="1200" height="150"></canvas>
       <p id="made">
         made by <a href="https://koenvangilst.nl">Koen van Gilst</a> | source on
         <a href="https://github.com/vnglst/pong-wars">github</a>
@@ -92,7 +93,9 @@
     // Idea for Pong wars: https://twitter.com/nicolasdnl/status/1749715070928433161
 
     const canvas = document.getElementById("pongCanvas");
+    const graph = document.getElementById("graph");
     const ctx = canvas.getContext("2d");
+    const ctxGraph = graph.getContext("2d", { willReadFrequently: true });
     const scoreElement = document.getElementById("score");
 
     const DAY_COLOR = colorPalette.MysticMint;
@@ -192,6 +195,28 @@
       }
 
       scoreElement.textContent = `day ${dayScore} | night ${nightScore}`;
+      if (iteration % 10 !== 0) {
+        return;
+      }
+
+      const dayPart = graph.height * dayScore / (numSquaresX * numSquaresY);
+
+      const imageData = ctxGraph.getImageData(1, 0, graph.width, graph.height);
+      ctxGraph.putImageData(imageData, 0, 0);
+
+      ctxGraph.strokeStyle = DAY_COLOR;
+      ctxGraph.beginPath();
+      ctxGraph.moveTo(graph.width, 0);
+      ctxGraph.lineTo(graph.width, dayPart);
+      ctxGraph.lineWidth = 2;
+      ctxGraph.stroke();
+
+      ctxGraph.strokeStyle = NIGHT_COLOR;
+      ctxGraph.beginPath();
+      ctxGraph.moveTo(graph.width, dayPart);
+      ctxGraph.lineTo(graph.width, graph.height);
+      ctxGraph.lineWidth = 2;
+      ctxGraph.stroke();
     }
 
     function checkBoundaryCollision(x, y, dx, dy) {
