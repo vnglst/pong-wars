@@ -107,11 +107,13 @@
     const numSquaresY = canvas.height / SQUARE_SIZE;
 
     let squares = [];
+    let counts = {[DAY_COLOR]: 0, [NIGHT_COLOR]: 0};
 
     for (let i = 0; i < numSquaresX; i++) {
       squares[i] = [];
       for (let j = 0; j < numSquaresY; j++) {
         squares[i][j] = i < numSquaresX / 2 ? DAY_COLOR : NIGHT_COLOR;
+        counts[squares[i][j]]++;
       }
     }
 
@@ -149,48 +151,37 @@
       }
     }
 
-    function updateSquareAndBounce(x, y, dx, dy, color) {
-      let updatedDx = dx;
-      let updatedDy = dy;
+    function updateSquareAndBounce(i, j, color, bounce) {
+      if (squares[i][j] !== color) {
+        counts[squares[i][j]]--;
+        squares[i][j] = color;
+        counts[color]++;
+        bounce();
+      }
+    }
 
-      // Check multiple points around the ball's circumference
-      for (let angle = 0; angle < Math.PI * 2; angle += Math.PI / 4) {
-        let checkX = x + Math.cos(angle) * (SQUARE_SIZE / 2);
-        let checkY = y + Math.sin(angle) * (SQUARE_SIZE / 2);
+    function checkSquareCollision(x, y, dx, dy, color) {
+      let nextX = x + dx;
+      let nextY = y + dy;
+      let col = Math.floor(x / SQUARE_SIZE);
+      let row = Math.floor(y / SQUARE_SIZE);
+      let nextCol = Math.floor(nextX / SQUARE_SIZE);
+      let nextRow = Math.floor(nextY / SQUARE_SIZE);
 
-        let i = Math.floor(checkX / SQUARE_SIZE);
-        let j = Math.floor(checkY / SQUARE_SIZE);
-
-        if (i >= 0 && i < numSquaresX && j >= 0 && j < numSquaresY) {
-          if (squares[i][j] !== color) {
-            squares[i][j] = color;
-
-            // Determine bounce direction based on the angle
-            if (Math.abs(Math.cos(angle)) > Math.abs(Math.sin(angle))) {
-              updatedDx = -updatedDx;
-            } else {
-              updatedDy = -updatedDy;
-            }
-          }
-        }
+      if (
+        nextCol >= 0 && nextCol < numSquaresX &&
+        nextRow >= 0 && nextRow < numSquaresY
+      ) {
+        updateSquareAndBounce(nextCol, row, color, () => dx = -dx);
+        updateSquareAndBounce(col, nextRow, color, () => dy = -dy);
       }
 
-      return { dx: updatedDx, dy: updatedDy };
+      return { dx, dy };
     }
 
     function updateScoreElement() {
-      let dayScore = 0;
-      let nightScore = 0;
-      for (let i = 0; i < numSquaresX; i++) {
-        for (let j = 0; j < numSquaresY; j++) {
-          if (squares[i][j] === DAY_COLOR) {
-            dayScore++;
-          } else if (squares[i][j] === NIGHT_COLOR) {
-            nightScore++;
-          }
-        }
-      }
-
+      let dayScore = counts[DAY_COLOR];
+      let nightScore = counts[NIGHT_COLOR];
       scoreElement.textContent = `day ${dayScore} | night ${nightScore}`;
     }
 
@@ -213,12 +204,12 @@
       drawSquares();
 
       drawBall(x1, y1, DAY_BALL_COLOR);
-      let bounce1 = updateSquareAndBounce(x1, y1, dx1, dy1, DAY_COLOR);
+      let bounce1 = checkSquareCollision(x1, y1, dx1, dy1, DAY_COLOR);
       dx1 = bounce1.dx;
       dy1 = bounce1.dy;
 
       drawBall(x2, y2, NIGHT_BALL_COLOR);
-      let bounce2 = updateSquareAndBounce(x2, y2, dx2, dy2, NIGHT_COLOR);
+      let bounce2 = checkSquareCollision(x2, y2, dx2, dy2, NIGHT_COLOR);
       dx2 = bounce2.dx;
       dy2 = bounce2.dy;
 
