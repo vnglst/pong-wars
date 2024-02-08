@@ -151,28 +151,29 @@
       }
     }
 
-    function updateSquareAndBounce(x, y, dx, dy, color) {
-      let checkX = x + dx;
-      let checkY = y + dy;
+    function updateSquareAndBounce(i, j, color, bounce) {
+      if (squares[i][j] !== color) {
+        counts[squares[i][j]]--;
+        squares[i][j] = color;
+        counts[color]++;
+        bounce();
+      }
+    }
 
-      let i = Math.floor(x / SQUARE_SIZE);
-      let j = Math.floor(y / SQUARE_SIZE);
-      let ci = Math.floor(checkX / SQUARE_SIZE);
-      let cj = Math.floor(checkY / SQUARE_SIZE);
+    function checkSquareCollision(x, y, dx, dy, color) {
+      let nextX = x + dx;
+      let nextY = y + dy;
+      let col = Math.floor(x / SQUARE_SIZE);
+      let row = Math.floor(y / SQUARE_SIZE);
+      let nextCol = Math.floor(nextX / SQUARE_SIZE);
+      let nextRow = Math.floor(nextY / SQUARE_SIZE);
 
-      if (ci >= 0 && ci < numSquaresX && cj >= 0 && cj < numSquaresY) {
-        if (squares[ci][j] !== color) {
-          counts[squares[ci][j]]--;
-          squares[ci][j] = color;
-          counts[color]++;
-          dx = -dx;
-        }
-        if (squares[i][cj] !== color) {
-          counts[squares[i][cj]]--;
-          squares[i][cj] = color;
-          counts[color]++;
-          dy = -dy;
-        }
+      if (
+        nextCol >= 0 && nextCol < numSquaresX &&
+        nextRow >= 0 && nextRow < numSquaresY
+      ) {
+        updateSquareAndBounce(nextCol, row, color, () => dx = -dx);
+        updateSquareAndBounce(col, nextRow, color, () => dy = -dy);
       }
 
       return { dx, dy };
@@ -203,12 +204,12 @@
       drawSquares();
 
       drawBall(x1, y1, DAY_BALL_COLOR);
-      let bounce1 = updateSquareAndBounce(x1, y1, dx1, dy1, DAY_COLOR);
+      let bounce1 = checkSquareCollision(x1, y1, dx1, dy1, DAY_COLOR);
       dx1 = bounce1.dx;
       dy1 = bounce1.dy;
 
       drawBall(x2, y2, NIGHT_BALL_COLOR);
-      let bounce2 = updateSquareAndBounce(x2, y2, dx2, dy2, NIGHT_COLOR);
+      let bounce2 = checkSquareCollision(x2, y2, dx2, dy2, NIGHT_COLOR);
       dx2 = bounce2.dx;
       dy2 = bounce2.dy;
 
