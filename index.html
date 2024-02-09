@@ -95,58 +95,88 @@
     const ctx = canvas.getContext("2d");
     const scoreElement = document.getElementById("score");
 
-    const DAY_COLOR = colorPalette.MysticMint;
-    const DAY_BALL_COLOR = colorPalette.NocturnalExpedition;
+    class Point {
+      constructor(x = 0, y = 0) {
+        this.x = x;
+        this.y = y;
+      }
+    }
 
-    const NIGHT_COLOR = colorPalette.NocturnalExpedition;
-    const NIGHT_BALL_COLOR = colorPalette.MysticMint;
+    class Square extends Point {
+      static SIZE = 50; // even integers only - must be factor of canvas size
+      
+      constructor(sx, sy) {
+        super(sx * Square.SIZE, sy * Square.SIZE);
+        this.sx = sx;
+        this.sy = sy;
+      }
+    }
+    
+    class Ball extends Point {
+      static RADIUS = Square.SIZE / 2;
+      
+      constructor(x, y, color) {
+        super(x, y);
+        this.color = color;
+        this.radius = 50;
+      }
+    }
 
-    const SQUARE_SIZE = 50; // even integers only - must be factor of canvas size
-    const BALL_RADIUS = SQUARE_SIZE / 2;
+    class Team {
+      constructor(color, ballColor) {
+        this.color = color;
+        this.ball = new Ball(0, 0, ballColor)
+        this.score = 0;
+        Team[color] = this;
+      }
+    }
+
+    let day = new Team(colorPalette.MysticMint, colorPalette.NocturnalExpedition);
+    let night = new Team(colorPalette.NocturnalExpedition, colorPalette.MysticMint);
 
     const SPEED = 25;
-
-    const numSquaresX = canvas.width / SQUARE_SIZE;
-    const numSquaresY = canvas.height / SQUARE_SIZE;
+    
+    let iteration = 0;
+    
+    const numSquaresX = canvas.width / Square.SIZE;
+    const numSquaresY = canvas.height / Square.SIZE;
 
     let pixels = [];
-
-    let xDay = BALL_RADIUS + Math.floor(numSquaresX / 4) * SQUARE_SIZE;
-    let yDay = BALL_RADIUS + getRandomIntInRange(0, numSquaresY - 1) * SQUARE_SIZE;
-    let dxDay = getRandomSign();
-    let dyDay = getRandomSign();
-
-    let xNight = BALL_RADIUS + Math.ceil(3 * numSquaresX / 4) * SQUARE_SIZE;
-    let yNight = BALL_RADIUS + getRandomIntInRange(0, numSquaresY - 1) * SQUARE_SIZE;
-    let dxNight = getRandomSign();
-    let dyNight = getRandomSign();
-
-    let dayScore = Math.floor(numSquaresX / 2) * numSquaresY;
-    let nightScore = Math.ceil(numSquaresX / 2) * numSquaresY
-
-    let iteration = 0;
 
     for (let x = 0; x < canvas.width; x++) {
       pixels[x] = [];
     }
 
-    function calculateDistance(p1x, p1y, p2x, p2y) {
-      return Math.sqrt(Math.pow(p1x - p2x, 2) + Math.pow(p1y - p2y, 2))
+    for (let sx = 0; sx < numSquaresX; sx++) {
+      for (let sy = 0; sy < numSquaresY; sy++) {
+        let color;
+        if (sx < Math.floor(numSquaresX / 2)) {
+          color = day.color;
+          day.score++;
+        }
+        else {
+          color = night.color;
+          night.score++;
+        }
+        colorPixelsInSquare(new Square(sx, sy), color);
+      }
     }
 
-    function ballIsInSquare(sx, sy, ballColor) {
-      let xSquare = sx * SQUARE_SIZE;
-      let ySquare = sy * SQUARE_SIZE;
+    day.ball.x = Ball.RADIUS + Math.ceil(numSquaresX / 4) * Square.SIZE;
+    day.ball.y = Ball.RADIUS + Math.floor(numSquaresY / 2) * Square.SIZE;
+    day.ball.dx = getRandomSign();
+    day.ball.dy = getRandomSign();
 
-      let xBall, yBall;
-      if (ballColor === DAY_COLOR) {
-        xBall = xDay;
-        yBall = yDay;
-      }
-      else {
-        xBall = xNight;
-        yBall = yNight;
-      }
+    night.ball.x = Ball.RADIUS + Math.floor(3 * numSquaresX / 4) * Square.SIZE;
+    night.ball.y = Ball.RADIUS + Math.floor(numSquaresY / 2) * Square.SIZE;
+    night.ball.dx = getRandomSign();
+    night.ball.dy = getRandomSign();
+
+    function calculateDistance(p1, p2) {
+      return Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2))
+    }
+
+    function teamBallIsInSquare(square, team) {
 
       // If this is the square        -->      this is the exclusion zone.
       // and ball has radius 2
@@ -163,32 +193,40 @@
       // ----------------------                 ----------------------
       // ----------------------                 ----------------------
 
-      const squareTopLeftX =      xSquare;
-      const squareTopLeftY =      ySquare;
-      const squareTopRightX =     xSquare  + SQUARE_SIZE;
-      const squareTopRightY =     ySquare;
-      const squareBottomLeftX =   xSquare;
-      const squareBottomLeftY =   ySquare  + SQUARE_SIZE;
-      const squareBottomRightX =  xSquare  + SQUARE_SIZE;
-      const squareBottomRightY =  ySquare  + SQUARE_SIZE;
+      const topLeft = {
+        x: square.x,
+        y: square.y
+      }
+      const topRight = {
+        x: square.x + Square.SIZE,
+        y: square.y
+      };
+      const bottomLeft = {
+        x: square.x,
+        y: square.y + Square.SIZE
+      };
+      const bottomRight = {
+        x: square.x + Square.SIZE,
+        y: square.y + Square.SIZE
+      };
 
       if (
-                 xBall >= xSquare                - BALL_RADIUS
-              && xBall <= xSquare  + SQUARE_SIZE + BALL_RADIUS
-              && yBall >= ySquare                - BALL_RADIUS
-              && yBall <= ySquare  + SQUARE_SIZE + BALL_RADIUS
+                 team.ball.x >= square.x                - Ball.RADIUS
+              && team.ball.x <= square.x  + Square.SIZE + Ball.RADIUS
+              && team.ball.y >= square.y                - Ball.RADIUS
+              && team.ball.y <= square.y  + Square.SIZE + Ball.RADIUS
       ) {
         // ball is inside the exclusion zone
-        const distanceToTopLeft = calculateDistance(xBall, yBall, squareTopLeftX, squareTopLeftY);
-        const distanceToTopRight = calculateDistance(xBall, yBall, squareTopRightX, squareTopRightY);
-        const distanceToBottomLeft = calculateDistance(xBall, yBall, squareBottomLeftX, squareBottomLeftY);
-        const distanceToBottomRight = calculateDistance(xBall, yBall, squareBottomRightX, squareBottomRightY);
+        const dTopLeft = calculateDistance(team.ball, topLeft);
+        const dTopRight = calculateDistance(team.ball, topRight);
+        const dBottomLeft = calculateDistance(team.ball, bottomLeft);
+        const dBottomRight = calculateDistance(team.ball, bottomRight);
 
         if (
-                (xBall < squareTopLeftX && yBall < squareTopLeftY && distanceToTopLeft >= BALL_RADIUS)
-                ||  (xBall > squareTopRightX && yBall < squareTopRightY && distanceToTopRight >= BALL_RADIUS)
-                ||  (xBall < squareBottomLeftX && yBall > squareBottomLeftY && distanceToBottomLeft >= BALL_RADIUS)
-                ||  (xBall > squareBottomRightX && yBall > squareBottomRightY && distanceToBottomRight >= BALL_RADIUS)
+                (team.ball.x < topLeft.x && team.ball.y < topLeft.y && dTopLeft >= Ball.RADIUS)
+                ||  (team.ball.x > topRight.x && team.ball.y < topRight.y && dTopRight >= Ball.RADIUS)
+                ||  (team.ball.x < bottomLeft.x && team.ball.y > bottomLeft.y && dBottomLeft >= Ball.RADIUS)
+                ||  (team.ball.x > bottomRight.x && team.ball.y > bottomRight.y && dBottomRight >= Ball.RADIUS)
         ) {
           // ball is at corners of exclusion zone (which are not part of it)
           return false;
@@ -203,50 +241,33 @@
       }
     }
 
-    function flipColorOfSquareThatPixelIsIn(x, y) {
-      let currentColor = pixels[x][y];
-      const isPointForNight = currentColor === DAY_COLOR;
+    function onSquareCollision(cp, team) {
+      let otherTeam = Team[pixels[cp.x][cp.y]];
 
-      let newColor = isPointForNight ? NIGHT_COLOR : DAY_COLOR;
-      let otherBallColor = isPointForNight ? DAY_COLOR : NIGHT_COLOR;
-
-      let {sx, sy} = getSquareThatPixelIsIn(x, y);
+      let square = getSquareThatPointIsIn(cp);
 
       // Do not flip color of square if the other ball and the square overlap
-      if (ballIsInSquare(sx, sy, otherBallColor)) {
+      if (teamBallIsInSquare(square, otherTeam)) {
         return;
       }
 
-      if (isPointForNight) {
-        dayScore--;
-        nightScore++;
-      }
-      else {
-        dayScore++;
-        nightScore--;
-      }
+      team.score++;
+      otherTeam.score--;
 
-      colorPixelsInSquare(sx, sy, newColor);
+      colorPixelsInSquare(square, team.color);
     }
 
-    function getSquareThatPixelIsIn(pixelX, pixelY) {
-      let sx = Math.floor(pixelX / SQUARE_SIZE);
-      let sy = Math.floor(pixelY / SQUARE_SIZE);
-      return {sx, sy}
+    function getSquareThatPointIsIn(point) {
+      let sx = Math.floor(point.x / Square.SIZE);
+      let sy = Math.floor(point.y / Square.SIZE);
+      return new Square(sx, sy);
     }
 
-    function colorPixelsInSquare(sx, sy, color) {
-      for (let x = sx * SQUARE_SIZE; x < (sx + 1) * SQUARE_SIZE; x++) {
-        for (let y = sy * SQUARE_SIZE; y < (sy + 1) * SQUARE_SIZE; y++) {
+    function colorPixelsInSquare(square, color) {
+      for (let x = square.x; x < square.x + Square.SIZE; x++) {
+        for (let y = square.y; y < square.y + Square.SIZE; y++) {
           pixels[x][y] = color;
         }
-      }
-    }
-
-    for (let x = 0; x < numSquaresX; x++) {
-      for (let y = 0; y < numSquaresY; y++) {
-        const color = x < Math.floor(numSquaresX / 2) ? DAY_COLOR : NIGHT_COLOR;
-        colorPixelsInSquare(x, y, color)
       }
     }
 
@@ -259,116 +280,105 @@
       return Math.floor(randomFloatInRange);
     }
 
-    function drawBall(x, y, color) {
+    function drawBall(team) {
       ctx.beginPath();
-      ctx.arc(x, y, BALL_RADIUS, 0, Math.PI * 2, false);
-      ctx.fillStyle = color;
+      ctx.arc(team.ball.x, team.ball.y, Ball.RADIUS, 0, Math.PI * 2, false);
+      ctx.fillStyle = team.ball.color;
       ctx.fill();
       ctx.closePath();
     }
 
     function drawSquares() {
-      for (let i = 0; i < canvas.width; i += SQUARE_SIZE) {
-        for (let j = 0; j < canvas.height; j += SQUARE_SIZE) {
+      for (let i = 0; i < canvas.width; i += Square.SIZE) {
+        for (let j = 0; j < canvas.height; j += Square.SIZE) {
           ctx.fillStyle = pixels[i][j];
           ctx.fillRect(
             i,
             j,
-            SQUARE_SIZE,
-            SQUARE_SIZE
+            Square.SIZE,
+            Square.SIZE
           );
         }
       }
     }
 
     function updateScoreElement() {
-      scoreElement.textContent = `day ${dayScore} | night ${nightScore}`;
+      scoreElement.textContent = `day ${day.score} | night ${night.score}`;
     }
 
-    function calculateNextStep(xOld, yOld, dxOld, dyOld, color) {
-      let dxNew = dxOld;
-      let dyNew = dyOld;
+    function calculateNextStep(team) {
+      let dx = team.ball.dx;
+      let dy = team.ball.dy;
 
       let horCanvasOut = false;
       let verCanvasOut = false;
 
       // possible vertical and horizontal collide points (CP)
-      const horCpX = dxOld === 1 ? xOld + BALL_RADIUS : xOld - BALL_RADIUS - 1;
-      const horCpY = yOld;
-      const verCpX = xOld;
-      const verCpY = dyOld === 1 ? yOld + BALL_RADIUS : yOld - BALL_RADIUS - 1;
+      const horCp = {
+        x: team.ball.dx === 1
+                ? team.ball.x + Ball.RADIUS
+                : team.ball.x - Ball.RADIUS - 1,
+        y: team.ball.y
+      };
+      const verCp = {
+        x: team.ball.x,
+        y: team.ball.dy === 1
+                ? team.ball.y + Ball.RADIUS
+                : team.ball.y - Ball.RADIUS - 1
+      };
 
       // possible diagonal collide point
-      const diaCpX = xOld + Math.ceil((1 / Math.sqrt(2)) * BALL_RADIUS) * dxOld;
-      const diaCpY = yOld + Math.ceil((1 / Math.sqrt(2)) * BALL_RADIUS) * dyOld;
+      const diaCp = {
+        x: team.ball.dx === 1
+                ? team.ball.x + Math.ceil((1 / Math.sqrt(2)) * Ball.RADIUS)
+                : team.ball.x - Math.ceil((1 / Math.sqrt(2)) * Ball.RADIUS) - 1,
+        y: team.ball.dy === 1
+                ? team.ball.y + Math.ceil((1 / Math.sqrt(2)) * Ball.RADIUS)
+                : team.ball.y - Math.ceil((1 / Math.sqrt(2)) * Ball.RADIUS) - 1
+      };
 
       // pixel horizontally out of canvas
-      if (horCpX === -1 || horCpX === canvas.width) {
-        dxNew = -dxNew;
+      if (horCp.x === -1 || horCp.x === canvas.width) {
+        dx = -dx;
         horCanvasOut = true;
       }
 
       // pixel vertically out of canvas
-      if (verCpY === -1 || verCpY === canvas.height) {
-        dyNew = -dyNew;
+      if (verCp.y === -1 || verCp.y === canvas.height) {
+        dy = -dy;
         verCanvasOut = true;
       }
 
       // horizontal collision
-      if (!horCanvasOut && pixels[horCpX][horCpY] === color) {
-        // change horizontal direction
-        dxNew = -dxNew;
-
-        // flip next square
-        flipColorOfSquareThatPixelIsIn(horCpX, horCpY);
+      if (!horCanvasOut && pixels[horCp.x][horCp.y] !== team.color) {
+        dx = -dx;
+        onSquareCollision(horCp, team);
       }
 
       // vertical collision
-      if (!verCanvasOut && pixels[verCpX][verCpY] === color) {
-        // change vertical direction
-        dyNew = -dyNew;
-
-        // flip next square
-        flipColorOfSquareThatPixelIsIn(verCpX, verCpY);
+      if (!verCanvasOut && pixels[verCp.x][verCp.y] !== team.color) {
+        dy = -dy;
+        onSquareCollision(verCp, team);
       }
 
       // diagonal collision (if ball radius is bigger 2)
-      if (!horCanvasOut && !verCanvasOut && pixels[diaCpX][diaCpY] === color) {
-        // change horizontal and vertical direction
-        dxNew = -dxNew;
-        dyNew = -dyNew;
-
-        // flip next square
-        flipColorOfSquareThatPixelIsIn(diaCpX, diaCpY);
+      if (!horCanvasOut && !verCanvasOut && pixels[diaCp.x][diaCp.y] !== team.color) {
+        dx = -dx;
+        dy = -dy;
+        onSquareCollision(diaCp, team);
       }
 
-      let xNew = xOld + dxNew;
-      let yNew = yOld + dyNew;
-
-      return {xNew, yNew, dxNew, dyNew};
-    }
-
-    function calculateNextStepDay() {
-      let newDay = calculateNextStep(xDay, yDay, dxDay, dyDay, DAY_BALL_COLOR);
-      xDay = newDay.xNew;
-      yDay = newDay.yNew;
-      dxDay = newDay.dxNew;
-      dyDay = newDay.dyNew;
-    }
-
-    function calculateNextStepNight() {
-      let newNight = calculateNextStep(xNight, yNight, dxNight, dyNight, NIGHT_BALL_COLOR);
-      xNight = newNight.xNew;
-      yNight = newNight.yNew;
-      dxNight = newNight.dxNew;
-      dyNight = newNight.dyNew;
+      team.ball.x += dx;
+      team.ball.y += dy;
+      team.ball.dx = dx;
+      team.ball.dy = dy;
     }
 
     function calculateNextFrame() {
       let step = 0
       while (step < SPEED) {
-        calculateNextStepDay();
-        calculateNextStepNight();
+        calculateNextStep(day);
+        calculateNextStep(night);
 
         step++;
       }
@@ -378,8 +388,8 @@
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       drawSquares();
 
-      drawBall(xDay, yDay, DAY_BALL_COLOR);
-      drawBall(xNight, yNight, NIGHT_BALL_COLOR);
+      drawBall(day);
+      drawBall(night);
 
       calculateNextFrame();
 
