@@ -162,15 +162,15 @@
       }
     }
 
-    day.ball.x = Ball.RADIUS + Math.ceil(numSquaresX / 4) * Square.SIZE;
-    day.ball.y = Ball.RADIUS + Math.floor(numSquaresY / 2) * Square.SIZE;
-    day.ball.dx = getRandomSign();
-    day.ball.dy = getRandomSign();
+    day.ball.x = (numSquaresX / 4) * Square.SIZE;
+    day.ball.y = (numSquaresY / 4) * Square.SIZE;
+    day.ball.dx = 1;
+    day.ball.dy = 1;
 
-    night.ball.x = Ball.RADIUS + Math.floor(3 * numSquaresX / 4) * Square.SIZE;
-    night.ball.y = Ball.RADIUS + Math.floor(numSquaresY / 2) * Square.SIZE;
-    night.ball.dx = getRandomSign();
-    night.ball.dy = getRandomSign();
+    night.ball.x = (3 * numSquaresX / 4) * Square.SIZE;
+    night.ball.y = (3 * numSquaresY / 4) * Square.SIZE;
+    night.ball.dx = -1;
+    night.ball.dy = 1;
 
     function calculateDistance(p1, p2) {
       return Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2))
@@ -269,15 +269,6 @@
           pixels[x][y] = color;
         }
       }
-    }
-
-    function getRandomSign() {
-      return Math.sign(Math.random() - 0.5);
-    }
-
-    function getRandomIntInRange(start, end) {
-      let randomFloatInRange = start + Math.random() * (end - start + 1);
-      return Math.floor(randomFloatInRange);
     }
 
     function drawBall(team) {
