@@ -35,7 +35,7 @@
         height: 100%;
       }
 
-      #pongCanvas {
+      canvas {
         display: block;
         border-radius: 4px;
         overflow: hidden;
@@ -80,6 +80,8 @@
 
   <script>
     // Source palette: https://twitter.com/AlexCristache/status/1738610343499157872
+    // Idea for Pong wars: https://twitter.com/nicolasdnl/status/1749715070928433161
+
     const colorPalette = {
       ArcticPowder: "#F1F6F4",
       MysticMint: "#D9E8E3",
@@ -89,25 +91,27 @@
       OceanicNoir: "#172B36",
     };
 
-    // Idea for Pong wars: https://twitter.com/nicolasdnl/status/1749715070928433161
-
     const canvas = document.getElementById("pongCanvas");
     const ctx = canvas.getContext("2d");
     const scoreElement = document.getElementById("score");
 
     const DAY_COLOR = colorPalette.MysticMint;
     const DAY_BALL_COLOR = colorPalette.NocturnalExpedition;
-
     const NIGHT_COLOR = colorPalette.NocturnalExpedition;
     const NIGHT_BALL_COLOR = colorPalette.MysticMint;
-
     const SQUARE_SIZE = 25;
+    const MIN_SPEED = 8.5;
+    const MAX_SPEED = 12.5;
 
     const numSquaresX = canvas.width / SQUARE_SIZE;
     const numSquaresY = canvas.height / SQUARE_SIZE;
 
-    let squares = [];
+    let dayScore = 0;
+    let nightScore = 0;
 
+    const squares = [];
+
+    // Populate the fields, one half day, one half night
     for (let i = 0; i < numSquaresX; i++) {
       squares[i] = [];
       for (let j = 0; j < numSquaresY; j++) {
@@ -115,27 +119,39 @@
       }
     }
 
-    let x1 = canvas.width / 4;
-    let y1 = canvas.height / 2;
-    let dx1 = 12.5;
-    let dy1 = -12.5;
-
-    let x2 = (canvas.width / 4) * 3;
-    let y2 = canvas.height / 2;
-    let dx2 = -12.5;
-    let dy2 = 12.5;
+    const balls = [
+      {
+        x: canvas.width / 4,
+        y: canvas.height / 2,
+        dx: 12.5,
+        dy: -12.5,
+        reverseColor: DAY_COLOR,
+        ballColor: DAY_BALL_COLOR,
+      },
+      {
+        x: (canvas.width / 4) * 3,
+        y: canvas.height / 2,
+        dx: -12.5,
+        dy: 12.5,
+        reverseColor: NIGHT_COLOR,
+        ballColor: NIGHT_BALL_COLOR,
+      },
+    ];
 
     let iteration = 0;
 
-    function drawBall(x, y, color) {
+    function drawBall(ball) {
       ctx.beginPath();
-      ctx.arc(x, y, SQUARE_SIZE / 2, 0, Math.PI * 2, false);
-      ctx.fillStyle = color;
+      ctx.arc(ball.x, ball.y, SQUARE_SIZE / 2, 0, Math.PI * 2, false);
+      ctx.fillStyle = ball.ballColor;
       ctx.fill();
       ctx.closePath();
     }
 
     function drawSquares() {
+      dayScore = 0;
+      nightScore = 0;
+
       for (let i = 0; i < numSquaresX; i++) {
         for (let j = 0; j < numSquaresY; j++) {
           ctx.fillStyle = squares[i][j];
@@ -145,100 +161,87 @@
             SQUARE_SIZE,
             SQUARE_SIZE
           );
+
+          // Update scores
+          if (squares[i][j] === DAY_COLOR) dayScore++;
+          if (squares[i][j] === NIGHT_COLOR) nightScore++;
         }
       }
     }
 
-    function updateSquareAndBounce(x, y, dx, dy, color) {
-      let updatedDx = dx;
-      let updatedDy = dy;
-
+    function checkSquareCollision(ball) {
       // Check multiple points around the ball's circumference
       for (let angle = 0; angle < Math.PI * 2; angle += Math.PI / 4) {
-        let checkX = x + Math.cos(angle) * (SQUARE_SIZE / 2);
-        let checkY = y + Math.sin(angle) * (SQUARE_SIZE / 2);
+        const checkX = ball.x + Math.cos(angle) * (SQUARE_SIZE / 2);
+        const checkY = ball.y + Math.sin(angle) * (SQUARE_SIZE / 2);
 
-        let i = Math.floor(checkX / SQUARE_SIZE);
-        let j = Math.floor(checkY / SQUARE_SIZE);
+        const i = Math.floor(checkX / SQUARE_SIZE);
+        const j = Math.floor(checkY / SQUARE_SIZE);
 
         if (i >= 0 && i < numSquaresX && j >= 0 && j < numSquaresY) {
-          if (squares[i][j] !== color) {
-            squares[i][j] = color;
+          if (squares[i][j] !== ball.reverseColor) {
+            // Square hit! Update square color
+            squares[i][j] = ball.reverseColor;
 
             // Determine bounce direction based on the angle
             if (Math.abs(Math.cos(angle)) > Math.abs(Math.sin(angle))) {
-              updatedDx = -updatedDx;
+              ball.dx = -ball.dx;
             } else {
-              updatedDy = -updatedDy;
+              ball.dy = -ball.dy;
             }
           }
         }
       }
-
-      return { dx: updatedDx, dy: updatedDy };
     }
 
-    function updateScoreElement() {
-      let dayScore = 0;
-      let nightScore = 0;
-      for (let i = 0; i < numSquaresX; i++) {
-        for (let j = 0; j < numSquaresY; j++) {
-          if (squares[i][j] === DAY_COLOR) {
-            dayScore++;
-          } else if (squares[i][j] === NIGHT_COLOR) {
-            nightScore++;
-          }
-        }
-      }
-
-      scoreElement.textContent = `day ${dayScore} | night ${nightScore}`;
-    }
-
-    function checkBoundaryCollision(x, y, dx, dy) {
-      if (x + dx > canvas.width - SQUARE_SIZE / 2 || x + dx < SQUARE_SIZE / 2) {
-        dx = -dx;
+    function checkBoundaryCollision(ball) {
+      if (
+        ball.x + ball.dx > canvas.width - SQUARE_SIZE / 2 ||
+        ball.x + ball.dx < SQUARE_SIZE / 2
+      ) {
+        ball.dx = -ball.dx;
       }
       if (
-        y + dy > canvas.height - SQUARE_SIZE / 2 ||
-        y + dy < SQUARE_SIZE / 2
+        ball.y + ball.dy > canvas.height - SQUARE_SIZE / 2 ||
+        ball.y + ball.dy < SQUARE_SIZE / 2
       ) {
-        dy = -dy;
+        ball.dy = -ball.dy;
       }
+    }
 
-      return { dx: dx, dy: dy };
+    function addRandomness(ball) {
+      ball.dx += Math.random() * 0.01 - 0.005;
+      ball.dy += Math.random() * 0.01 - 0.005;
+
+      // Limit the speed of the ball
+      ball.dx = Math.min(Math.max(ball.dx, -MAX_SPEED), MAX_SPEED);
+      ball.dy = Math.min(Math.max(ball.dy, -MAX_SPEED), MAX_SPEED);
+
+      // Make sure the ball always maintains a minimum speed
+      if (Math.abs(ball.dx) < MIN_SPEED)
+        ball.dx = ball.dx > 0 ? MIN_SPEED : -MIN_SPEED;
+      if (Math.abs(ball.dy) < MIN_SPEED)
+        ball.dy = ball.dy > 0 ? MIN_SPEED : -MIN_SPEED;
     }
 
     function draw() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       drawSquares();
 
-      drawBall(x1, y1, DAY_BALL_COLOR);
-      let bounce1 = updateSquareAndBounce(x1, y1, dx1, dy1, DAY_COLOR);
-      dx1 = bounce1.dx;
-      dy1 = bounce1.dy;
+      scoreElement.textContent = `day ${dayScore} | night ${nightScore}`;
 
-      drawBall(x2, y2, NIGHT_BALL_COLOR);
-      let bounce2 = updateSquareAndBounce(x2, y2, dx2, dy2, NIGHT_COLOR);
-      dx2 = bounce2.dx;
-      dy2 = bounce2.dy;
+      balls.forEach((ball) => {
+        drawBall(ball);
+        checkSquareCollision(ball);
+        checkBoundaryCollision(ball);
+        ball.x += ball.dx;
+        ball.y += ball.dy;
 
-      let boundary1 = checkBoundaryCollision(x1, y1, dx1, dy1);
-      dx1 = boundary1.dx;
-      dy1 = boundary1.dy;
-
-      let boundary2 = checkBoundaryCollision(x2, y2, dx2, dy2);
-      dx2 = boundary2.dx;
-      dy2 = boundary2.dy;
-
-      x1 += dx1;
-      y1 += dy1;
-      x2 += dx2;
-      y2 += dy2;
+        addRandomness(ball);
+      });
 
       iteration++;
       if (iteration % 1_000 === 0) console.log("iteration", iteration);
-
-      updateScoreElement();
 
       requestAnimationFrame(draw);
     }
