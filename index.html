@@ -69,7 +69,7 @@
 
   <body>
     <div id="container">
-      <canvas id="pongCanvas" width="800" height="800"></canvas>
+      <canvas id="pongCanvas" width="600" height="600"></canvas>
       <div id="score"></div>
       <p id="made">
         made by <a href="https://koenvangilst.nl">Koen van Gilst</a> | source on
@@ -100,8 +100,8 @@
     const NIGHT_COLOR = colorPalette.NocturnalExpedition;
     const NIGHT_BALL_COLOR = colorPalette.MysticMint;
     const SQUARE_SIZE = 25;
-    const MIN_SPEED = 8.5;
-    const MAX_SPEED = 12.5;
+    const MIN_SPEED = 5;
+    const MAX_SPEED = 10;
 
     const numSquaresX = canvas.width / SQUARE_SIZE;
     const numSquaresY = canvas.height / SQUARE_SIZE;
@@ -123,16 +123,16 @@
       {
         x: canvas.width / 4,
         y: canvas.height / 2,
-        dx: 12.5,
-        dy: -12.5,
+        dx: 8,
+        dy: -8,
         reverseColor: DAY_COLOR,
         ballColor: DAY_BALL_COLOR,
       },
       {
         x: (canvas.width / 4) * 3,
         y: canvas.height / 2,
-        dx: -12.5,
-        dy: 12.5,
+        dx: -8,
+        dy: 8,
         reverseColor: NIGHT_COLOR,
         ballColor: NIGHT_BALL_COLOR,
       },
