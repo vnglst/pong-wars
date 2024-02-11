@@ -167,6 +167,10 @@
       }
     }
 
+    function calculateDistance(p1x, p1y, p2x, p2y) {
+      return Math.sqrt(Math.pow(p2x - p1x, 2) + Math.pow(p2y - p1y, 2));
+    }
+
     function calculateDxFromAngle(angle) {
       return Math.round(Math.sqrt(2) * Math.cos(angle * Math.PI) * 1_000_000) / 1_000_000;
     }
@@ -175,7 +179,54 @@
       return Math.round(Math.sqrt(2) * Math.sin(angle * Math.PI) * 1_000_000) / 1_000_000;
     }
 
-    function updateSquareAndBounce(x, y, dx, dy, angleOld, color) {
+    function isBallInSquare(sx, sy, xBall, yBall) {
+      // If this ball and square   this is the exclusion zone.
+      // ---bb------------------   ---------------------------
+      // --bbbb-----------------   ---------------------------
+      // --bbbb-----------------   --------######-------------
+      // ---bb------------------   -------########------------
+      // ---------ssss----------   -------##ssss##------------
+      // ---------ssss----------   -------##ssss##------------
+      // ---------ssss----------   -------##ssss##------------
+      // ---------ssss----------   -------##ssss##------------
+      // -----------------------   -------########------------
+      // -----------------------   --------######-------------
+      // -----------------------   ---------------------------
+
+      let xSquare = sx * SQUARE_SIZE;
+      let ySquare = sy * SQUARE_SIZE;
+      let sxBall = Math.floor(xBall / SQUARE_SIZE);
+      let syBall = Math.floor(yBall / SQUARE_SIZE);
+
+      // Check if ball is inside square
+      if (sxBall === sx && syBall === sy) {
+        return true;
+      }
+
+      // Check if ball is more than one square away
+      if (Math.abs(sxBall - sx) > 1 || Math.abs(syBall - sy) > 1) {
+        return false;
+      }
+
+      // Check if ball is inside orthogonally neighboring square and closer than one radius to the according edge of this square
+      if (
+                  (sx - sxBall === 1 && xSquare - xBall <= BALL_RADIUS)                   // Left neighbor
+              ||  (sy - syBall === 1 && ySquare - yBall <= BALL_RADIUS)                   // Top neighbor
+              ||  (sxBall - sx === 1 && xBall - (xSquare + SQUARE_SIZE) <= BALL_RADIUS)   // Right neighbor
+              ||  (syBall - sy === 1 && yBall - (ySquare + SQUARE_SIZE) <= BALL_RADIUS)   // Bottom neighbor
+      ) {
+        return true;
+      }
+
+      // Ball must be in diagonally neighboring square
+      // Check if the distance to any of the corner points of the square is closer than the ball radius -> overlap
+      return calculateDistance(xBall, yBall, xSquare, ySquare) <= BALL_RADIUS
+              || calculateDistance(xBall, yBall, xSquare + SQUARE_SIZE, ySquare) <= BALL_RADIUS
+              || calculateDistance(xBall, yBall, xSquare, ySquare + SQUARE_SIZE) <= BALL_RADIUS
+              || calculateDistance(xBall, yBall, xSquare + SQUARE_SIZE, ySquare + SQUARE_SIZE) <= BALL_RADIUS;
+    }
+
+    function updateSquareAndBounce(x, y, dx, dy, angleOld, color, xOtherBall, yOtherBall) {
       let dxUpdated = dx;
       let dyUpdated = dy;
       let angleUpdated = angleOld;
@@ -218,15 +269,17 @@
         let syCheck = Math.floor(yCheck / SQUARE_SIZE);
 
         if (squares[sxCheck] && squares[sxCheck][syCheck] && squares[sxCheck][syCheck] !== color) {
-          // Flip color
-          squares[sxCheck][syCheck] = color;
-          if (color === DAY_COLOR) {
-            scoreDay++;
-            scoreNight--;
-          }
-          else {
-            scoreNight++;
-            scoreDay--;
+          // Only flip color if other ball is not inside square
+          if (!isBallInSquare(sxCheck, syCheck, xOtherBall, yOtherBall)) {
+            squares[sxCheck][syCheck] = color;
+            if (color === DAY_COLOR) {
+              scoreDay++;
+              scoreNight--;
+            }
+            else {
+              scoreNight++;
+              scoreDay--;
+            }
           }
           angleCols.push(angleCheck);
         }
@@ -270,12 +323,12 @@
       drawBall(xNight, yNight, NIGHT_BALL_COLOR);
 
       for (let step = 0; step < SPEED; step++) {
-        let bounceDay = updateSquareAndBounce(xDay, yDay, dxDay, dyDay, angleDay, DAY_COLOR);
+        let bounceDay = updateSquareAndBounce(xDay, yDay, dxDay, dyDay, angleDay, DAY_COLOR, xNight, yNight);
         dxDay = bounceDay.dx;
         dyDay = bounceDay.dy;
         angleDay = bounceDay.angle;
 
-        let bounceNight = updateSquareAndBounce(xNight, yNight, dxNight, dyNight, angleNight, NIGHT_COLOR);
+        let bounceNight = updateSquareAndBounce(xNight, yNight, dxNight, dyNight, angleNight, NIGHT_COLOR, xDay, yDay);
         dxNight = bounceNight.dx;
         dyNight = bounceNight.dy;
         angleNight = bounceNight.angle;
