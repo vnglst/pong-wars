@@ -105,10 +105,11 @@
     const SQUARE_SIZE = 30; // must be an even integer and a factor of the canvas size
 
     const BALL_RADIUS = SQUARE_SIZE / 2;
+    const BALL_CIRCUMFERENCE = 2 * Math.PI * BALL_RADIUS;
 
-    // Calculate next bigger power of 2 of diameter to ensure relevant angles are always checked (0, 1/4, 1/2, 3/4, 1, 5/4, 3/2, 7/4)
     // Use diameter to ensure each pixel around the circumference is checked at least once
-    let anglePerPixel = 1 / Math.pow(2, Math.ceil(Math.log2(BALL_RADIUS / Math.PI)));
+    // Calculate next bigger power of 2 of diameter to ensure relevant angles (0, 1/4, 1/2, 3/4, 1, 5/4, 3/2, 7/4) are always checked
+    let anglePerPixel = getRoundedAngle(1 / Math.pow(2, Math.ceil(Math.log2(BALL_CIRCUMFERENCE))));
 
     const numSquaresX = canvas.width / SQUARE_SIZE;
     const numSquaresY = canvas.height / SQUARE_SIZE;
@@ -175,6 +176,10 @@
       return Math.sqrt(Math.pow(p2x - p1x, 2) + Math.pow(p2y - p1y, 2));
     }
 
+    function getRoundedAngle(angle) {
+      return Math.round(1_000_000 * angle) / 1_000_000;
+    }
+
     function calculateDxFromAngle(angle) {
       return Math.round(Math.sqrt(2) * Math.cos(angle * Math.PI) * 1_000_000) / 1_000_000;
     }
@@ -238,7 +243,7 @@
       let angleCols = [];
 
       // Check multiple points around the ball's circumference
-      for (let angleCheck = 0; angleCheck < 2; angleCheck += anglePerPixel) {
+      for (let angleCheck = 0; angleCheck < 2; angleCheck = getRoundedAngle(anglePerPixel + angleCheck)) {
         let angleCheckDiff = angleOld - angleCheck;
 
         // angles must be in range [0,2)
@@ -310,7 +315,7 @@
           angleIncident = angleReflection;
         }
 
-        angleUpdated = angleReflection;
+        angleUpdated = getRoundedAngle(angleReflection);
         dxUpdated = calculateDxFromAngle(angleUpdated);
         dyUpdated = calculateDyFromAngle(angleUpdated);
       }
