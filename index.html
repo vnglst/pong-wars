@@ -101,7 +101,8 @@
     const NIGHT_COLOR = colorPalette.NocturnalExpedition;
     const NIGHT_BALL_COLOR = colorPalette.MysticMint;
 
-    const SQUARE_SIZE = 25;
+    const SPEED = 12;
+    const SQUARE_SIZE = 25; // must be a factor of canvas
 
     const numSquaresX = canvas.width / SQUARE_SIZE;
     const numSquaresY = canvas.height / SQUARE_SIZE;
@@ -117,13 +118,13 @@
 
     let x1 = canvas.width / 4;
     let y1 = canvas.height / 2;
-    let dx1 = 12.5;
-    let dy1 = -12.5;
+    let dx1 = 1;
+    let dy1 = -1;
 
     let x2 = (canvas.width / 4) * 3;
     let y2 = canvas.height / 2;
-    let dx2 = -12.5;
-    let dy2 = 12.5;
+    let dx2 = -1;
+    let dy2 = 1;
 
     let iteration = 0;
 
@@ -213,27 +214,30 @@
       drawSquares();
 
       drawBall(x1, y1, DAY_BALL_COLOR);
-      let bounce1 = updateSquareAndBounce(x1, y1, dx1, dy1, DAY_COLOR);
-      dx1 = bounce1.dx;
-      dy1 = bounce1.dy;
-
       drawBall(x2, y2, NIGHT_BALL_COLOR);
-      let bounce2 = updateSquareAndBounce(x2, y2, dx2, dy2, NIGHT_COLOR);
-      dx2 = bounce2.dx;
-      dy2 = bounce2.dy;
 
-      let boundary1 = checkBoundaryCollision(x1, y1, dx1, dy1);
-      dx1 = boundary1.dx;
-      dy1 = boundary1.dy;
+      for (let step = 0; step < SPEED; step++) {
+        let bounce1 = updateSquareAndBounce(x1, y1, dx1, dy1, DAY_COLOR);
+        dx1 = bounce1.dx;
+        dy1 = bounce1.dy;
 
-      let boundary2 = checkBoundaryCollision(x2, y2, dx2, dy2);
-      dx2 = boundary2.dx;
-      dy2 = boundary2.dy;
+        let bounce2 = updateSquareAndBounce(x2, y2, dx2, dy2, NIGHT_COLOR);
+        dx2 = bounce2.dx;
+        dy2 = bounce2.dy;
 
-      x1 += dx1;
-      y1 += dy1;
-      x2 += dx2;
-      y2 += dy2;
+        let boundary1 = checkBoundaryCollision(x1, y1, dx1, dy1);
+        dx1 = boundary1.dx;
+        dy1 = boundary1.dy;
+
+        let boundary2 = checkBoundaryCollision(x2, y2, dx2, dy2);
+        dx2 = boundary2.dx;
+        dy2 = boundary2.dy;
+
+        x1 += dx1;
+        y1 += dy1;
+        x2 += dx2;
+        y2 += dy2;
+      }
 
       iteration++;
       if (iteration % 1_000 === 0) console.log("iteration", iteration);
