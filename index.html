@@ -69,7 +69,7 @@
 
   <body>
     <div id="container">
-      <canvas id="pongCanvas" width="1600" height="1600"></canvas>
+      <canvas id="pongCanvas" width="720" height="720"></canvas>
       <div id="score"></div>
       <p id="made">
         made by <a href="https://koenvangilst.nl">Koen van Gilst</a> | source on
@@ -101,10 +101,14 @@
     const NIGHT_COLOR = colorPalette.NocturnalExpedition;
     const NIGHT_BALL_COLOR = colorPalette.MysticMint;
 
-    const SPEED = 25;
-    const SQUARE_SIZE = 50; // must be an even integer and a factor of the canvas size
+    const SPEED = 10;
+    const SQUARE_SIZE = 30; // must be an even integer and a factor of the canvas size
 
     const BALL_RADIUS = SQUARE_SIZE / 2;
+
+    // Calculate next bigger power of 2 of diameter to ensure relevant angles are always checked (0, 1/4, 1/2, 3/4, 1, 5/4, 3/2, 7/4)
+    // Use diameter to ensure each pixel around the circumference is checked at least once
+    let anglePerPixel = 1 / Math.pow(2, Math.ceil(Math.log2(BALL_RADIUS / Math.PI)));
 
     const numSquaresX = canvas.width / SQUARE_SIZE;
     const numSquaresY = canvas.height / SQUARE_SIZE;
@@ -233,15 +237,14 @@
 
       let angleCols = [];
 
-      // Calculate next bigger power of 2 of diameter to ensure relevant angles are always checked (0, 1/4, 1/2, 3/4, 1, 5/4, 3/2, 7/4)
-      // Use diameter to ensure each pixel around the circumference is checked at least once
-      let ballSizeNextPowerOf2 = Math.pow(2, Math.ceil(Math.log2(BALL_RADIUS / Math.PI)));
-
       // Check multiple points around the ball's circumference
-      for (let angleCheck = 0; angleCheck < 2; angleCheck += 1 / ballSizeNextPowerOf2) {
+      for (let angleCheck = 0; angleCheck < 2; angleCheck += anglePerPixel) {
         let angleCheckDiff = angleOld - angleCheck;
 
-        if (Math.sign(angleCheckDiff) === -1) angleCheckDiff += 2;
+        // angles must be in range [0,2)
+        if (Math.sign(angleCheckDiff) === -1) {
+          angleCheckDiff += 2;
+        }
 
         // Only check angles in vector direction
         if (angleCheckDiff >= 1 / 2 && angleCheckDiff <= 3 / 2) continue;
@@ -295,9 +298,13 @@
           angleColDiff = 2 - (angleIncidentMirrored - angleCols[i]);
           angleReflection = angleCols[i] + angleColDiff;
 
-          if (angleReflection >= 2) angleReflection -= 2;
-
-          if (angleReflection < 0) angleReflection += 2;
+          // angles must be in range [0,2)
+          if (angleReflection >= 2) {
+            angleReflection -= 2;
+          }
+          else if (angleReflection < 0) {
+            angleReflection += 2;
+          }
 
           // if more than one collision is detected -> calculated reflection winkel of first collision is incident winkel of second collision
           angleIncident = angleReflection;
@@ -328,13 +335,14 @@
         dyDay = bounceDay.dy;
         angleDay = bounceDay.angle;
 
+        xDay += dxDay;
+        yDay += dyDay;
+
         let bounceNight = updateSquareAndBounce(xNight, yNight, dxNight, dyNight, angleNight, NIGHT_COLOR, xDay, yDay);
         dxNight = bounceNight.dx;
         dyNight = bounceNight.dy;
         angleNight = bounceNight.angle;
 
-        xDay += dxDay;
-        yDay += dyDay;
         xNight += dxNight;
         yNight += dyNight;
       }
