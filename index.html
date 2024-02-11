@@ -69,7 +69,7 @@
 
   <body>
     <div id="container">
-      <canvas id="pongCanvas" width="800" height="800"></canvas>
+      <canvas id="pongCanvas" width="1600" height="1600"></canvas>
       <div id="score"></div>
       <p id="made">
         made by <a href="https://koenvangilst.nl">Koen van Gilst</a> | source on
@@ -101,36 +101,53 @@
     const NIGHT_COLOR = colorPalette.NocturnalExpedition;
     const NIGHT_BALL_COLOR = colorPalette.MysticMint;
 
-    const SPEED = 12;
-    const SQUARE_SIZE = 25; // must be a factor of canvas
+    const SPEED = 25;
+    const SQUARE_SIZE = 50; // must be an even integer and a factor of the canvas size
+
+    const BALL_RADIUS = SQUARE_SIZE / 2;
 
     const numSquaresX = canvas.width / SQUARE_SIZE;
     const numSquaresY = canvas.height / SQUARE_SIZE;
 
     let squares = [];
 
-    for (let i = 0; i < numSquaresX; i++) {
-      squares[i] = [];
-      for (let j = 0; j < numSquaresY; j++) {
-        squares[i][j] = i < numSquaresX / 2 ? DAY_COLOR : NIGHT_COLOR;
-      }
-    }
 
-    let x1 = canvas.width / 4;
-    let y1 = canvas.height / 2;
-    let dx1 = 1;
-    let dy1 = -1;
+    let xDay = canvas.width / 4;
+    let yDay = canvas.height / 2;
+    let angleDay = 1.7; // radians [0, 2)
 
-    let x2 = (canvas.width / 4) * 3;
-    let y2 = canvas.height / 2;
-    let dx2 = -1;
-    let dy2 = 1;
+    let dxDay = calculateDxFromAngle(angleDay);
+    let dyDay = calculateDyFromAngle(angleDay);
+
+    let xNight = 3 * canvas.width / 4;
+    let yNight = canvas.height / 2;
+    let angleNight = 0.8; // radians [0, 2)
+
+    let dxNight = calculateDxFromAngle(angleNight);
+    let dyNight = calculateDyFromAngle(angleNight);
+
+    let scoreNight = 0;
+    let scoreDay = 0;
 
     let iteration = 0;
 
+    for (let i = 0; i < numSquaresX; i++) {
+      squares[i] = [];
+      for (let j = 0; j < numSquaresY; j++) {
+        if (i < numSquaresX / 2) {
+          squares[i][j] = DAY_COLOR;
+          scoreDay++;
+        }
+        else {
+          squares[i][j] = NIGHT_COLOR;
+          scoreNight++;
+        }
+      }
+    }
+
     function drawBall(x, y, color) {
       ctx.beginPath();
-      ctx.arc(x, y, SQUARE_SIZE / 2, 0, Math.PI * 2, false);
+      ctx.arc(x, y, BALL_RADIUS, 0, Math.PI * 2, false);
       ctx.fillStyle = color;
       ctx.fill();
       ctx.closePath();
@@ -150,93 +167,123 @@
       }
     }
 
-    function updateSquareAndBounce(x, y, dx, dy, color) {
-      let updatedDx = dx;
-      let updatedDy = dy;
+    function calculateDxFromAngle(angle) {
+      return Math.round(Math.sqrt(2) * Math.cos(angle * Math.PI) * 1_000_000) / 1_000_000;
+    }
+
+    function calculateDyFromAngle(angle) {
+      return Math.round(Math.sqrt(2) * Math.sin(angle * Math.PI) * 1_000_000) / 1_000_000;
+    }
+
+    function updateSquareAndBounce(x, y, dx, dy, angleOld, color) {
+      let dxUpdated = dx;
+      let dyUpdated = dy;
+      let angleUpdated = angleOld;
+
+      let angleCols = [];
+
+      // Calculate next bigger power of 2 of diameter to ensure relevant angles are always checked (0, 1/4, 1/2, 3/4, 1, 5/4, 3/2, 7/4)
+      // Use diameter to ensure each pixel around the circumference is checked at least once
+      let ballSizeNextPowerOf2 = Math.pow(2, Math.ceil(Math.log2(BALL_RADIUS / Math.PI)));
 
       // Check multiple points around the ball's circumference
-      for (let angle = 0; angle < Math.PI * 2; angle += Math.PI / 4) {
-        let checkX = x + Math.cos(angle) * (SQUARE_SIZE / 2);
-        let checkY = y + Math.sin(angle) * (SQUARE_SIZE / 2);
+      for (let angleCheck = 0; angleCheck < 2; angleCheck += 1 / ballSizeNextPowerOf2) {
+        let angleCheckDiff = angleOld - angleCheck;
 
-        let i = Math.floor(checkX / SQUARE_SIZE);
-        let j = Math.floor(checkY / SQUARE_SIZE);
+        if (Math.sign(angleCheckDiff) === -1) angleCheckDiff += 2;
 
-        if (i >= 0 && i < numSquaresX && j >= 0 && j < numSquaresY) {
-          if (squares[i][j] !== color) {
-            squares[i][j] = color;
+        // Only check angles in vector direction
+        if (angleCheckDiff >= 1 / 2 && angleCheckDiff <= 3 / 2) continue;
 
-            // Determine bounce direction based on the angle
-            if (Math.abs(Math.cos(angle)) > Math.abs(Math.sin(angle))) {
-              updatedDx = -updatedDx;
-            } else {
-              updatedDy = -updatedDy;
-            }
+        // check is one out of circle
+        let xCheck = x + Math.cos(angleCheck * Math.PI) * BALL_RADIUS;
+        let yCheck = y + Math.sin(angleCheck * Math.PI) * BALL_RADIUS;
+
+        // Depending on which side of the circle we are, we need to round decimal pixels either up or down
+        // On left and top side of circle we need to reduce by one more to check potential next square.
+        xCheck = angleCheck >= 1 / 2 && angleCheck < 3 / 2
+                ? Math.ceil(xCheck) - 1
+                : Math.floor(xCheck);
+
+        yCheck = angleCheck >= 1 && angleCheck < 2
+                ? Math.ceil(yCheck) - 1
+                : Math.floor(yCheck);
+
+        // boundary collision
+        if (xCheck < 0 || xCheck >= canvas.width || yCheck < 0 || yCheck >= canvas.height) {
+          angleCols.push(angleCheck);
+        }
+
+        let sxCheck = Math.floor(xCheck / SQUARE_SIZE);
+        let syCheck = Math.floor(yCheck / SQUARE_SIZE);
+
+        if (squares[sxCheck] && squares[sxCheck][syCheck] && squares[sxCheck][syCheck] !== color) {
+          // Flip color
+          squares[sxCheck][syCheck] = color;
+          if (color === DAY_COLOR) {
+            scoreDay++;
+            scoreNight--;
           }
+          else {
+            scoreNight++;
+            scoreDay--;
+          }
+          angleCols.push(angleCheck);
         }
       }
 
-      return { dx: updatedDx, dy: updatedDy };
+      if (angleCols.length >= 1) {
+        // Determine bounce direction based on the collision angle
+        let angleIncidentMirrored, angleColDiff, angleReflection;
+        let angleIncident = angleOld;
+
+        for (let i = 0; i < angleCols.length; i++) {
+          angleIncidentMirrored = angleIncident + 1;
+          angleColDiff = 2 - (angleIncidentMirrored - angleCols[i]);
+          angleReflection = angleCols[i] + angleColDiff;
+
+          if (angleReflection >= 2) angleReflection -= 2;
+
+          if (angleReflection < 0) angleReflection += 2;
+
+          // if more than one collision is detected -> calculated reflection winkel of first collision is incident winkel of second collision
+          angleIncident = angleReflection;
+        }
+
+        angleUpdated = angleReflection;
+        dxUpdated = calculateDxFromAngle(angleUpdated);
+        dyUpdated = calculateDyFromAngle(angleUpdated);
+      }
+
+      return { dx: dxUpdated, dy: dyUpdated, angle: angleUpdated };
     }
 
     function updateScoreElement() {
-      let dayScore = 0;
-      let nightScore = 0;
-      for (let i = 0; i < numSquaresX; i++) {
-        for (let j = 0; j < numSquaresY; j++) {
-          if (squares[i][j] === DAY_COLOR) {
-            dayScore++;
-          } else if (squares[i][j] === NIGHT_COLOR) {
-            nightScore++;
-          }
-        }
-      }
-
-      scoreElement.textContent = `day ${dayScore} | night ${nightScore}`;
-    }
-
-    function checkBoundaryCollision(x, y, dx, dy) {
-      if (x + dx > canvas.width - SQUARE_SIZE / 2 || x + dx < SQUARE_SIZE / 2) {
-        dx = -dx;
-      }
-      if (
-        y + dy > canvas.height - SQUARE_SIZE / 2 ||
-        y + dy < SQUARE_SIZE / 2
-      ) {
-        dy = -dy;
-      }
-
-      return { dx: dx, dy: dy };
+      scoreElement.textContent = `day ${scoreDay} | night ${scoreNight}`;
     }
 
     function draw() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       drawSquares();
 
-      drawBall(x1, y1, DAY_BALL_COLOR);
-      drawBall(x2, y2, NIGHT_BALL_COLOR);
+      drawBall(xDay, yDay, DAY_BALL_COLOR);
+      drawBall(xNight, yNight, NIGHT_BALL_COLOR);
 
       for (let step = 0; step < SPEED; step++) {
-        let bounce1 = updateSquareAndBounce(x1, y1, dx1, dy1, DAY_COLOR);
-        dx1 = bounce1.dx;
-        dy1 = bounce1.dy;
+        let bounceDay = updateSquareAndBounce(xDay, yDay, dxDay, dyDay, angleDay, DAY_COLOR);
+        dxDay = bounceDay.dx;
+        dyDay = bounceDay.dy;
+        angleDay = bounceDay.angle;
 
-        let bounce2 = updateSquareAndBounce(x2, y2, dx2, dy2, NIGHT_COLOR);
-        dx2 = bounce2.dx;
-        dy2 = bounce2.dy;
+        let bounceNight = updateSquareAndBounce(xNight, yNight, dxNight, dyNight, angleNight, NIGHT_COLOR);
+        dxNight = bounceNight.dx;
+        dyNight = bounceNight.dy;
+        angleNight = bounceNight.angle;
 
-        let boundary1 = checkBoundaryCollision(x1, y1, dx1, dy1);
-        dx1 = boundary1.dx;
-        dy1 = boundary1.dy;
-
-        let boundary2 = checkBoundaryCollision(x2, y2, dx2, dy2);
-        dx2 = boundary2.dx;
-        dy2 = boundary2.dy;
-
-        x1 += dx1;
-        y1 += dy1;
-        x2 += dx2;
-        y2 += dy2;
+        xDay += dxDay;
+        yDay += dyDay;
+        xNight += dxNight;
+        yNight += dyNight;
       }
 
       iteration++;
