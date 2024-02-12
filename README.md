@@ -51,3 +51,4 @@ If you've created an alternate version of Pong Wars and want to share, feel free
 - [Eternal Bounce Battle (GDevelop)](https://gd.games/victrisgames/eternal-bounce-battle)
 - [Swift (SpriteKit)](https://github.com/frederik-jacques/ios-pongwars)
 - [React Native](https://github.com/Nodonisko/react-native-skia-pong-wars)
+- [Yin-Yang Pong](https://ying-yang-pong.vercel.app/)
