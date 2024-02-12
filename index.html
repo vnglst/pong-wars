@@ -241,6 +241,7 @@
       let angleUpdated = angleOld;
 
       let angleCols = [];
+      let squaresToFlip = [];
 
       // Check multiple points around the ball's circumference
       for (let angleCheck = 0; angleCheck < 2; angleCheck = getRoundedAngle(anglePerPixel + angleCheck)) {
@@ -279,15 +280,7 @@
         if (squares[sxCheck] && squares[sxCheck][syCheck] && squares[sxCheck][syCheck] !== color) {
           // Only flip color if other ball is not inside square
           if (!isBallInSquare(sxCheck, syCheck, xOtherBall, yOtherBall)) {
-            squares[sxCheck][syCheck] = color;
-            if (color === DAY_COLOR) {
-              scoreDay++;
-              scoreNight--;
-            }
-            else {
-              scoreNight++;
-              scoreDay--;
-            }
+            squaresToFlip.push({sx: sxCheck, sy: syCheck});
           }
           angleCols.push(angleCheck);
         }
@@ -318,6 +311,22 @@
         angleUpdated = getRoundedAngle(angleReflection);
         dxUpdated = calculateDxFromAngle(angleUpdated);
         dyUpdated = calculateDyFromAngle(angleUpdated);
+      }
+
+      // flip square color and change scores
+      for (let i = 0; i < squaresToFlip.length; i++) {
+        // ensure each square is only flipped once
+        if (squares[squaresToFlip[i].sx][squaresToFlip[i].sy] === color) continue;
+
+        squares[squaresToFlip[i].sx][squaresToFlip[i].sy] = color;
+        if (color === DAY_COLOR) {
+          scoreDay++;
+          scoreNight--;
+        }
+        else {
+          scoreNight++;
+          scoreDay--;
+        }
       }
 
       return { dx: dxUpdated, dy: dyUpdated, angle: angleUpdated };
