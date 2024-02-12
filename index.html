@@ -109,7 +109,7 @@
 
     // Use diameter to ensure each pixel around the circumference is checked at least once
     // Calculate next bigger power of 2 of diameter to ensure relevant angles (0, 1/4, 1/2, 3/4, 1, 5/4, 3/2, 7/4) are always checked
-    let anglePerPixel = getRoundedAngle(1 / Math.pow(2, Math.ceil(Math.log2(BALL_CIRCUMFERENCE))));
+    let anglePerPixel = 1 / Math.pow(2, Math.ceil(Math.log2(BALL_CIRCUMFERENCE)));
 
     const numSquaresX = canvas.width / SQUARE_SIZE;
     const numSquaresY = canvas.height / SQUARE_SIZE;
@@ -240,11 +240,12 @@
       let dyUpdated = dy;
       let angleUpdated = angleOld;
 
+      let angleCheck = 0;
       let angleCols = [];
       let squaresToFlip = [];
 
       // Check multiple points around the ball's circumference
-      for (let angleCheck = 0; angleCheck < 2; angleCheck = getRoundedAngle(anglePerPixel + angleCheck)) {
+      for (let i = 0; angleCheck < 2; angleCheck = getRoundedAngle(++i * anglePerPixel)) {;
         let angleCheckDiff = angleOld - angleCheck;
 
         // angles must be in range [0,2)
@@ -288,27 +289,44 @@
 
       if (angleCols.length >= 1) {
         // Determine bounce direction based on the collision angle
-        let angleIncidentMirrored, angleColDiff, angleReflection;
+        let angleReflection;
         let angleIncident = angleOld;
 
+        // Multiple collisions must be combined by their mean difference
+        let angleColsSum = 0;
         for (let i = 0; i < angleCols.length; i++) {
-          angleIncidentMirrored = angleIncident + 1;
-          angleColDiff = 2 - (angleIncidentMirrored - angleCols[i]);
-          angleReflection = angleCols[i] + angleColDiff;
-
-          // angles must be in range [0,2)
-          if (angleReflection >= 2) {
-            angleReflection -= 2;
+          let angleCol = angleCols[i];
+          if (angleOld < 0.5 && angleCol >= 1) {
+            angleCol -= 2;
           }
-          else if (angleReflection < 0) {
-            angleReflection += 2;
+          else if (angleOld >= 1.5 && angleCol < 1) {
+            angleCol += 2;
           }
-
-          // if more than one collision is detected -> calculated reflection winkel of first collision is incident winkel of second collision
-          angleIncident = angleReflection;
+          angleColsSum += angleCol;
         }
 
-        angleUpdated = getRoundedAngle(angleReflection);
+        let angleColsMean = getRoundedAngle(angleColsSum / angleCols.length);
+        let angleDiffsMean = getRoundedAngle(angleColsMean - angleIncident);
+
+        let angleColsInverted = angleColsMean + 1;
+
+        // angles must be in range [0,2)
+        if (angleColsInverted >= 2) {
+          angleColsInverted -= 2;
+        }
+
+        angleReflection = getRoundedAngle(angleColsInverted + angleDiffsMean);
+
+        // angles must be in range [0,2)
+        while (angleReflection >= 2) {
+          angleReflection -= 2;
+        }
+
+        while (angleReflection < 0) {
+          angleReflection += 2;
+        }
+
+        angleUpdated = angleReflection;
         dxUpdated = calculateDxFromAngle(angleUpdated);
         dyUpdated = calculateDyFromAngle(angleUpdated);
       }
