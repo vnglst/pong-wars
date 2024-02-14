@@ -52,3 +52,4 @@ If you've created an alternate version of Pong Wars and want to share, feel free
 - [Swift (SpriteKit)](https://github.com/frederik-jacques/ios-pongwars)
 - [React Native](https://github.com/Nodonisko/react-native-skia-pong-wars)
 - [Yin-Yang Pong](https://ying-yang-pong.vercel.app/)
+- [Java](https://github.com/krefikk/yingyang)
