@@ -113,11 +113,26 @@
     const numSquaresX = canvas.width / SQUARE_SIZE;
     const numSquaresY = canvas.height / SQUARE_SIZE;
 
-    const squares = [];
-
     const scores = [];
     scores[DAY_COLOR] = 0;
     scores[NIGHT_COLOR] = 0;
+
+    const squares = [];
+
+    // Populate the fields, one half day, one half night
+    for (let i = 0; i < numSquaresX; i++) {
+      squares[i] = [];
+      for (let j = 0; j < numSquaresY; j++) {
+        if (i < numSquaresX / 2) {
+          squares[i][j] = DAY_COLOR;
+          scores[DAY_COLOR]++;
+        }
+        else {
+          squares[i][j] = NIGHT_COLOR;
+          scores[NIGHT_COLOR]++;
+        }
+      }
+    }
 
     const balls = [
       {
@@ -142,21 +157,6 @@
     });
 
     let iteration = 0;
-
-    // Populate the fields, one half day, one half night
-    for (let i = 0; i < numSquaresX; i++) {
-      squares[i] = [];
-      for (let j = 0; j < numSquaresY; j++) {
-        if (i < numSquaresX / 2) {
-          squares[i][j] = DAY_COLOR;
-          scores[DAY_COLOR]++;
-        }
-        else {
-          squares[i][j] = NIGHT_COLOR;
-          scores[NIGHT_COLOR]++;
-        }
-      }
-    }
 
     function drawBall(ball) {
       ctx.beginPath();
