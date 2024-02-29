@@ -281,33 +281,33 @@
         if (angleCheckDiff >= 1 / 2 && angleCheckDiff <= 3 / 2) continue;
 
         // check is one out of circle
-        let xCheck = ball.x + Math.cos(angleCheck * Math.PI) * BALL_RADIUS;
-        let yCheck = ball.y + Math.sin(angleCheck * Math.PI) * BALL_RADIUS;
+        let check = {
+          x: ball.x + Math.cos(angleCheck * Math.PI) * BALL_RADIUS,
+          y: ball.y + Math.sin(angleCheck * Math.PI) * BALL_RADIUS
+        };
 
         // Depending on which side of the circle we are, we need to round decimal pixels either up or down
         // On left and top side of circle we need to reduce by one more to check potential next square.
-        xCheck = angleCheck >= 1 / 2 && angleCheck < 3 / 2
-                ? Math.ceil(xCheck) - 1
-                : Math.floor(xCheck);
+        check.x = angleCheck >= 1 / 2 && angleCheck < 3 / 2
+                ? Math.ceil(check.x) - 1
+                : Math.floor(check.x);
 
-        yCheck = angleCheck >= 1 && angleCheck < 2
-                ? Math.ceil(yCheck) - 1
-                : Math.floor(yCheck);
+        check.y = angleCheck >= 1 && angleCheck < 2
+                ? Math.ceil(check.y) - 1
+                : Math.floor(check.y);
 
         // boundary collision
-        if (xCheck < 0 || xCheck >= canvas.width || yCheck < 0 || yCheck >= canvas.height) {
+        if (check.x < 0 || check.x >= canvas.width || check.y < 0 || check.y >= canvas.height) {
           angleCols.push(angleCheck);
         }
 
-        let square = {
-          sx: Math.floor(xCheck / SQUARE_SIZE),
-          sy: Math.floor(yCheck / SQUARE_SIZE)
-        }
+        check.sx = Math.floor(check.x / SQUARE_SIZE);
+        check.sy = Math.floor(check.y / SQUARE_SIZE);
 
-        if (squares[square.sx] && squares[square.sx][square.sy] && squares[square.sx][square.sy] !== ball.color) {
+        if (squares[check.sx] && squares[check.sx][check.sy] && squares[check.sx][check.sy] !== ball.color) {
           // Do not flip square if any other ball is inside square
-          if (!isAnyOtherBallInSquare(ball, square)) {
-            squaresToFlip.push(square);
+          if (!isAnyOtherBallInSquare(ball, check)) {
+            squaresToFlip.push(check);
           }
           angleCols.push(angleCheck);
         }
