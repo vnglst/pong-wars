@@ -259,7 +259,49 @@
       return false;
     }
 
+    function noNearSquareCandidate(ball) {
+      let ballSquare = {
+        sx: Math.floor(ball.x / SQUARE_SIZE),
+        sy: Math.floor(ball.y / SQUARE_SIZE)
+      };
+
+      // only next squares in direction of travel are candidates
+      let possibleSquares = [];
+      possibleSquares.push({
+        sx: ballSquare.sx + Math.sign(ball.dx),
+        sy: ballSquare.sy,
+      });
+      possibleSquares.push({
+        sx: ballSquare.sx,
+        sy: ballSquare.sy + Math.sign(ball.dy),
+      });
+      possibleSquares.push({
+        sx: ballSquare.sx + Math.sign(ball.dx),
+        sy: ballSquare.sy + Math.sign(ball.dy),
+      });
+
+      for (let i = 0; i < possibleSquares.length; i++) {
+        let square = possibleSquares[i];
+
+        // check if square is out of border
+        if (!squares[square.sx] || !squares[square.sx][square.sy]){
+          return false;
+        }
+
+        // check if square is of other color
+        if (squares[square.sx][square.sy] !== ball.color) {
+          return false;
+        }
+      }
+
+      return true;
+    }
+
     function updateSquareAndBounce(ball) {
+      if (noNearSquareCandidate(ball)) {
+        return;
+      }
+
       let dxUpdated = ball.dx;
       let dyUpdated = ball.dy;
       let angleUpdated = ball.angle;
