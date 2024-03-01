@@ -138,14 +138,14 @@
       {
         x: canvas.width / 4,
         y: canvas.height / 2,
-        angle: 1.7, // radians [0, 2)
+        angle: 2 * Math.random() / 3 - 1 / 3, // radians [-1/3, 1/3)
         color: DAY_COLOR,
         ballColor: DAY_BALL_COLOR,
       },
       {
         x: (canvas.width / 4) * 3,
         y: canvas.height / 2,
-        angle: 0.8, // radians [0, 2)
+        angle: 2 * Math.random() / 3 - 1 / 3 + 1, // radians [2/3, 4/3)
         color: NIGHT_COLOR,
         ballColor: NIGHT_BALL_COLOR,
       }
