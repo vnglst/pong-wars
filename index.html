@@ -259,7 +259,7 @@
       return false;
     }
 
-    function noNearSquareCandidate(ball) {
+    function nearSquareCandidateOrBorder(ball) {
       let ballSquare = {
         sx: Math.floor(ball.x / SQUARE_SIZE),
         sy: Math.floor(ball.y / SQUARE_SIZE)
@@ -285,23 +285,19 @@
 
         // check if square is out of border
         if (!squares[square.sx] || !squares[square.sx][square.sy]){
-          return false;
+          return true;
         }
 
         // check if square is of other color
         if (squares[square.sx][square.sy] !== ball.color) {
-          return false;
+          return true;
         }
       }
 
-      return true;
+      return false;
     }
 
     function updateSquareAndBounce(ball) {
-      if (noNearSquareCandidate(ball)) {
-        return;
-      }
-
       let dxUpdated = ball.dx;
       let dyUpdated = ball.dy;
       let angleUpdated = ball.angle;
@@ -433,7 +429,9 @@
 
       for (let step = 0; step < SPEED; step++) {
         balls.forEach((ball) => {
-          updateSquareAndBounce(ball);
+          if (nearSquareCandidateOrBorder(ball)) {
+            updateSquareAndBounce(ball);
+          }
           ball.x += ball.dx;
           ball.y += ball.dy;
         });
