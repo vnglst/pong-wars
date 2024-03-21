@@ -69,7 +69,7 @@
 
   <body>
     <div id="container">
-      <canvas id="pongCanvas" width="600" height="600"></canvas>
+      <canvas id="pongCanvas" width="720" height="720"></canvas>
       <div id="score"></div>
       <p id="made">
         made by
@@ -101,15 +101,23 @@
     const DAY_BALL_COLOR = colorPalette.NocturnalExpedition;
     const NIGHT_COLOR = colorPalette.NocturnalExpedition;
     const NIGHT_BALL_COLOR = colorPalette.MysticMint;
-    const SQUARE_SIZE = 25;
-    const MIN_SPEED = 5;
-    const MAX_SPEED = 10;
+
+    const SPEED = 10;
+    const SQUARE_SIZE = 30; // must be an even integer and a factor of the canvas size
+
+    const BALL_RADIUS = SQUARE_SIZE / 2;
+    const BALL_CIRCUMFERENCE = 2 * Math.PI * BALL_RADIUS;
+
+    // Use diameter to ensure each pixel around the circumference is checked at least once
+    // Calculate next bigger power of 2 of diameter to ensure relevant angles (0, 1/4, 1/2, 3/4, 1, 5/4, 3/2, 7/4) are always checked
+    let anglePerPixel = 1 / Math.pow(2, Math.ceil(Math.log2(BALL_CIRCUMFERENCE)));
 
     const numSquaresX = canvas.width / SQUARE_SIZE;
     const numSquaresY = canvas.height / SQUARE_SIZE;
 
-    let dayScore = 0;
-    let nightScore = 0;
+    const scores = [];
+    scores[DAY_COLOR] = 0;
+    scores[NIGHT_COLOR] = 0;
 
     const squares = [];
 
@@ -117,7 +125,14 @@
     for (let i = 0; i < numSquaresX; i++) {
       squares[i] = [];
       for (let j = 0; j < numSquaresY; j++) {
-        squares[i][j] = i < numSquaresX / 2 ? DAY_COLOR : NIGHT_COLOR;
+        if (i < numSquaresX / 2) {
+          squares[i][j] = DAY_COLOR;
+          scores[DAY_COLOR]++;
+        }
+        else {
+          squares[i][j] = NIGHT_COLOR;
+          scores[NIGHT_COLOR]++;
+        }
       }
     }
 
@@ -125,35 +140,35 @@
       {
         x: canvas.width / 4,
         y: canvas.height / 2,
-        dx: 8,
-        dy: -8,
-        reverseColor: DAY_COLOR,
+        angle: 2 * Math.random() / 3 - 1 / 3, // radians [-1/3, 1/3)
+        color: DAY_COLOR,
         ballColor: DAY_BALL_COLOR,
       },
       {
         x: (canvas.width / 4) * 3,
         y: canvas.height / 2,
-        dx: -8,
-        dy: 8,
-        reverseColor: NIGHT_COLOR,
+        angle: 2 * Math.random() / 3 - 1 / 3 + 1, // radians [2/3, 4/3)
+        color: NIGHT_COLOR,
         ballColor: NIGHT_BALL_COLOR,
-      },
+      }
     ];
+
+    balls.forEach((ball) => {
+      ball.dx = calculateDxFromAngle(ball.angle);
+      ball.dy = calculateDyFromAngle(ball.angle);
+    });
 
     let iteration = 0;
 
     function drawBall(ball) {
       ctx.beginPath();
-      ctx.arc(ball.x, ball.y, SQUARE_SIZE / 2, 0, Math.PI * 2, false);
+      ctx.arc(ball.x, ball.y, BALL_RADIUS, 0, Math.PI * 2, false);
       ctx.fillStyle = ball.ballColor;
       ctx.fill();
       ctx.closePath();
     }
 
     function drawSquares() {
-      dayScore = 0;
-      nightScore = 0;
-
       for (let i = 0; i < numSquaresX; i++) {
         for (let j = 0; j < numSquaresY; j++) {
           ctx.fillStyle = squares[i][j];
@@ -163,84 +178,266 @@
             SQUARE_SIZE,
             SQUARE_SIZE
           );
-
-          // Update scores
-          if (squares[i][j] === DAY_COLOR) dayScore++;
-          if (squares[i][j] === NIGHT_COLOR) nightScore++;
         }
       }
     }
 
-    function checkSquareCollision(ball) {
+    function calculateDistance(p1, p2) {
+      return Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
+    }
+
+    function getRoundedAngle(angle) {
+      return Math.round(1_000_000 * angle) / 1_000_000;
+    }
+
+    function calculateDxFromAngle(angle) {
+      return Math.round(Math.sqrt(2) * Math.cos(angle * Math.PI) * 1_000_000) / 1_000_000;
+    }
+
+    function calculateDyFromAngle(angle) {
+      return Math.round(Math.sqrt(2) * Math.sin(angle * Math.PI) * 1_000_000) / 1_000_000;
+    }
+
+    function isAnyOtherBallInSquare(thisBall, square) {
+      // If this ball and square   this is the exclusion zone.
+      // ---bb------------------   ---------------------------
+      // --bbbb-----------------   ---------------------------
+      // --bbbb-----------------   --------######-------------
+      // ---bb------------------   -------########------------
+      // ---------ssss----------   -------##ssss##------------
+      // ---------ssss----------   -------##ssss##------------
+      // ---------ssss----------   -------##ssss##------------
+      // ---------ssss----------   -------##ssss##------------
+      // -----------------------   -------########------------
+      // -----------------------   --------######-------------
+      // -----------------------   ---------------------------
+
+      square.x = square.sx * SQUARE_SIZE;
+      square.y = square.sy * SQUARE_SIZE;
+
+      for (let i = 0; i < balls.length; i++) {
+        let ball = balls[i];
+
+        // Do not check this ball
+        if (ball.color === thisBall.color) continue;
+
+        ball.sx = Math.floor(ball.x / SQUARE_SIZE);
+        ball.sy = Math.floor(ball.y / SQUARE_SIZE);
+
+        // Check if ball is inside square
+        if (ball.sx === square.sx && ball.sy === square.sy) {
+          return true;
+        }
+
+        // Check if ball is more than one square away
+        if (Math.abs(ball.sx - square.sx) > 1 || Math.abs(ball.sy - square.sy) > 1) {
+          // is not in square -> check next ball
+          continue;
+        }
+
+        // Check if ball is inside orthogonally neighboring square and closer than one radius to the according edge of this square
+        if (
+                (square.sx - ball.sx === 1 && square.x - ball.x <= BALL_RADIUS)                   // Left neighbor
+                || (square.sy - ball.sy === 1 && square.y - ball.y <= BALL_RADIUS)                   // Top neighbor
+                || (ball.sx - square.sx === 1 && ball.x - (square.x + SQUARE_SIZE) <= BALL_RADIUS)   // Right neighbor
+                || (ball.sy - square.sy === 1 && ball.y - (square.y + SQUARE_SIZE) <= BALL_RADIUS)   // Bottom neighbor
+        ) {
+          return true;
+        }
+
+        // Ball must be in diagonally neighboring square
+        // Check if the distance to any of the corner points of the square is closer than the ball radius -> overlap
+        if (
+                calculateDistance(ball, square) <= BALL_RADIUS
+                || calculateDistance(ball, { x: square.x + SQUARE_SIZE, y: square.y }) <= BALL_RADIUS
+                || calculateDistance(ball, { x: square.x, y: square.y + SQUARE_SIZE }) <= BALL_RADIUS
+                || calculateDistance(ball, { x: square.x + SQUARE_SIZE, y: square.y + SQUARE_SIZE }) <= BALL_RADIUS
+        ) {
+          return true;
+        }
+      }
+
+      // No ball is in square
+      return false;
+    }
+
+    function nearSquareCandidateOrBorder(ball) {
+      let ballSquare = {
+        sx: Math.floor(ball.x / SQUARE_SIZE),
+        sy: Math.floor(ball.y / SQUARE_SIZE)
+      };
+
+      // only next squares in direction of travel are candidates
+      let possibleSquares = [];
+      possibleSquares.push({
+        sx: ballSquare.sx + Math.sign(ball.dx),
+        sy: ballSquare.sy,
+      });
+      possibleSquares.push({
+        sx: ballSquare.sx,
+        sy: ballSquare.sy + Math.sign(ball.dy),
+      });
+      possibleSquares.push({
+        sx: ballSquare.sx + Math.sign(ball.dx),
+        sy: ballSquare.sy + Math.sign(ball.dy),
+      });
+
+      for (let i = 0; i < possibleSquares.length; i++) {
+        let square = possibleSquares[i];
+
+        // check if square is out of border
+        if (!squares[square.sx] || !squares[square.sx][square.sy]){
+          return true;
+        }
+
+        // check if square is of other color
+        if (squares[square.sx][square.sy] !== ball.color) {
+          return true;
+        }
+      }
+
+      return false;
+    }
+
+    function updateSquareAndBounce(ball) {
+      let dxUpdated = ball.dx;
+      let dyUpdated = ball.dy;
+      let angleUpdated = ball.angle;
+
+      let angleCheck = 0;
+      let angleCols = [];
+      let squaresToFlip = [];
+
       // Check multiple points around the ball's circumference
-      for (let angle = 0; angle < Math.PI * 2; angle += Math.PI / 4) {
-        const checkX = ball.x + Math.cos(angle) * (SQUARE_SIZE / 2);
-        const checkY = ball.y + Math.sin(angle) * (SQUARE_SIZE / 2);
+      for (let i = 0; angleCheck < 2; angleCheck = getRoundedAngle(++i * anglePerPixel)) {
+        let angleCheckDiff = ball.angle - angleCheck;
 
-        const i = Math.floor(checkX / SQUARE_SIZE);
-        const j = Math.floor(checkY / SQUARE_SIZE);
+        // angles must be in range [0,2)
+        if (Math.sign(angleCheckDiff) === -1) {
+          angleCheckDiff += 2;
+        }
 
-        if (i >= 0 && i < numSquaresX && j >= 0 && j < numSquaresY) {
-          if (squares[i][j] !== ball.reverseColor) {
-            // Square hit! Update square color
-            squares[i][j] = ball.reverseColor;
+        // Only check angles in vector direction
+        if (angleCheckDiff >= 1 / 2 && angleCheckDiff <= 3 / 2) continue;
 
-            // Determine bounce direction based on the angle
-            if (Math.abs(Math.cos(angle)) > Math.abs(Math.sin(angle))) {
-              ball.dx = -ball.dx;
-            } else {
-              ball.dy = -ball.dy;
-            }
+        // check is one out of circle
+        let check = {
+          x: ball.x + Math.cos(angleCheck * Math.PI) * BALL_RADIUS,
+          y: ball.y + Math.sin(angleCheck * Math.PI) * BALL_RADIUS
+        };
+
+        // Depending on which side of the circle we are, we need to round decimal pixels either up or down
+        // On left and top side of circle we need to reduce by one more to check potential next square.
+        check.x = angleCheck >= 1 / 2 && angleCheck < 3 / 2
+                ? Math.ceil(check.x) - 1
+                : Math.floor(check.x);
+
+        check.y = angleCheck >= 1 && angleCheck < 2
+                ? Math.ceil(check.y) - 1
+                : Math.floor(check.y);
+
+        // boundary collision
+        if (check.x < 0 || check.x >= canvas.width || check.y < 0 || check.y >= canvas.height) {
+          angleCols.push(angleCheck);
+        }
+
+        check.sx = Math.floor(check.x / SQUARE_SIZE);
+        check.sy = Math.floor(check.y / SQUARE_SIZE);
+
+        if (squares[check.sx] && squares[check.sx][check.sy] && squares[check.sx][check.sy] !== ball.color) {
+          // Do not flip square if any other ball is inside square
+          if (!isAnyOtherBallInSquare(ball, check)) {
+            squaresToFlip.push(check);
           }
+          angleCols.push(angleCheck);
         }
       }
+
+      if (angleCols.length >= 1) {
+        // Determine bounce direction based on the collision angle
+        let angleReflection;
+
+        // Multiple collisions must be combined by their mean difference
+        let angleColsSum = 0;
+        for (let i = 0; i < angleCols.length; i++) {
+          let angleCol = angleCols[i];
+          if (ball.angle < 0.5 && angleCol >= 1) {
+            angleCol -= 2;
+          }
+          else if (ball.angle >= 1.5 && angleCol < 1) {
+            angleCol += 2;
+          }
+          angleColsSum += angleCol;
+        }
+
+        let angleColsMean = getRoundedAngle(angleColsSum / angleCols.length);
+        let angleDiffsMean = getRoundedAngle(angleColsMean - ball.angle);
+
+        let angleColsInverted = angleColsMean + 1;
+
+        // angles must be in range [0,2)
+        if (angleColsInverted >= 2) {
+          angleColsInverted -= 2;
+        }
+
+        angleReflection = getRoundedAngle(angleColsInverted + angleDiffsMean);
+
+        // angles must be in range [0,2)
+        while (angleReflection >= 2) {
+          angleReflection -= 2;
+        }
+
+        while (angleReflection < 0) {
+          angleReflection += 2;
+        }
+
+        angleUpdated = angleReflection;
+        dxUpdated = calculateDxFromAngle(angleUpdated);
+        dyUpdated = calculateDyFromAngle(angleUpdated);
+      }
+
+      // flip square color and change scores
+      for (let i = 0; i < squaresToFlip.length; i++) {
+        const oldColor = squares[squaresToFlip[i].sx][squaresToFlip[i].sy];
+
+        // ensure each square is only flipped once
+        if (oldColor === ball.color) continue;
+
+        squares[squaresToFlip[i].sx][squaresToFlip[i].sy] = ball.color;
+
+        scores[ball.color]++;
+        scores[oldColor]--;
+      }
+
+      ball.dx = dxUpdated;
+      ball.dy = dyUpdated;
+      ball.angle = angleUpdated;
     }
 
-    function checkBoundaryCollision(ball) {
-      if (
-        ball.x + ball.dx > canvas.width - SQUARE_SIZE / 2 ||
-        ball.x + ball.dx < SQUARE_SIZE / 2
-      ) {
-        ball.dx = -ball.dx;
-      }
-      if (
-        ball.y + ball.dy > canvas.height - SQUARE_SIZE / 2 ||
-        ball.y + ball.dy < SQUARE_SIZE / 2
-      ) {
-        ball.dy = -ball.dy;
-      }
-    }
-
-    function addRandomness(ball) {
-      ball.dx += Math.random() * 0.01 - 0.005;
-      ball.dy += Math.random() * 0.01 - 0.005;
-
-      // Limit the speed of the ball
-      ball.dx = Math.min(Math.max(ball.dx, -MAX_SPEED), MAX_SPEED);
-      ball.dy = Math.min(Math.max(ball.dy, -MAX_SPEED), MAX_SPEED);
-
-      // Make sure the ball always maintains a minimum speed
-      if (Math.abs(ball.dx) < MIN_SPEED)
-        ball.dx = ball.dx > 0 ? MIN_SPEED : -MIN_SPEED;
-      if (Math.abs(ball.dy) < MIN_SPEED)
-        ball.dy = ball.dy > 0 ? MIN_SPEED : -MIN_SPEED;
+    function updateScoreElement() {
+      scoreElement.textContent = `day ${scores[DAY_COLOR]} | night ${scores[NIGHT_COLOR]}`;
     }
 
     function draw() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      drawSquares();
 
-      scoreElement.textContent = `day ${dayScore} | night ${nightScore}`;
+      updateScoreElement();
+
+      drawSquares();
 
       balls.forEach((ball) => {
         drawBall(ball);
-        checkSquareCollision(ball);
-        checkBoundaryCollision(ball);
-        ball.x += ball.dx;
-        ball.y += ball.dy;
-
-        addRandomness(ball);
       });
+
+      for (let step = 0; step < SPEED; step++) {
+        balls.forEach((ball) => {
+          if (nearSquareCandidateOrBorder(ball)) {
+            updateSquareAndBounce(ball);
+          }
+          ball.x += ball.dx;
+          ball.y += ball.dy;
+        });
+      }
 
       iteration++;
       if (iteration % 1_000 === 0) console.log("iteration", iteration);
