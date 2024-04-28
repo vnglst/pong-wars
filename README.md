@@ -57,3 +57,4 @@ If you've created an alternate version of Pong Wars and want to share, feel free
 - [Tag-Team](https://github.com/SSteve/pong-wars) ([Live](https://ssteve.github.io/pong-wars/))
 - [Pong-Wars Fireballs](https://pong-wars-fireballs.vercel.app)
 - [C# with DIKUArcade](https://github.com/Roar-Morkore-Hansen/pong-wars.git)
+- [Land-Or-Water](https://github.com/makaveli2P/land-or-water)
