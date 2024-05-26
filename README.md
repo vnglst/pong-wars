@@ -61,3 +61,4 @@ If you've created an alternate version of Pong Wars and want to share, feel free
 - [C# (Cross-platform on iOS, Android, WebAssembly, MacOS, Linux, and Windows)](https://aka.platform.uno/pongwars)
 - [Land-Or-Water](https://github.com/makaveli2P/land-or-water)
 - [Godot](https://github.com/rosskarchner/pong-wars-godot)
+- [Gold Wars (This version has an end!)](https://ask5.github.io/gold-wars/)
