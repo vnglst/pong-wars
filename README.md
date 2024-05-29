@@ -45,6 +45,7 @@ If you've created an alternate version of Pong Wars and want to share, feel free
 - [Python](https://github.com/vocdex/pong-wars-python)
 - [ASCII Python](https://github.com/flash1293/ascii-pong-wars)
 - [Seasons Pong](https://github.com/hmak-dev/seasons-pong)
+- [Color Pong](https://color-pong.vercel.app)
 - [Processing](https://github.com/riktov/processing-pong-wars)
 - [Flutter](https://github.com/flikkr/flutter_pong_wars)
 - [Rust/Wasm](https://github.com/wasmhub-dev/pong_wars.rs)
