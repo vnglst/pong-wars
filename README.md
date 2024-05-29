@@ -47,6 +47,7 @@ The alternate versions are listed below in alphabetical order:
 - [Eternal Bounce Battle (GDevelop)](https://gd.games/victrisgames/eternal-bounce-battle)
 - [Flutter](https://github.com/flikkr/flutter_pong_wars)
 - [Godot](https://github.com/rosskarchner/pong-wars-godot)
+- [Gold Wars (This version has an end!)](https://ask5.github.io/gold-wars/)
 - [Java](https://github.com/krefikk/yingyang)
 - [Kotlin/Wasm](https://github.com/wasmhub-dev/pong_wars.kt)
 - [Land-Or-Water](https://github.com/makaveli2P/land-or-water)
