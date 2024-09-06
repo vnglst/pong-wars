@@ -11,6 +11,7 @@
     <link rel="author" href="https://koenvangilst.nl" />
     <meta name="theme-color" content="#172B36" />
     <meta name="creator" content="Koen van Gilst" />
+    <script defer data-domain="pong-wars.koenvangilst.nl" src="https://plausible.koenvangilst.nl/js/script.js"></script>
     <style>
       html {
         height: 100%;
@@ -73,8 +74,7 @@
       <div id="score"></div>
       <p id="made">
         made by
-        <a href="https://koenvangilst.nl/labs/pong-wars">Koen van Gilst</a> |
-        source on
+        <a href="https://koenvangilst.nl/labs/pong-wars">Koen van Gilst</a> | source on
         <a href="https://github.com/vnglst/pong-wars">github</a>
       </p>
     </div>
@@ -157,12 +157,7 @@
       for (let i = 0; i < numSquaresX; i++) {
         for (let j = 0; j < numSquaresY; j++) {
           ctx.fillStyle = squares[i][j];
-          ctx.fillRect(
-            i * SQUARE_SIZE,
-            j * SQUARE_SIZE,
-            SQUARE_SIZE,
-            SQUARE_SIZE
-          );
+          ctx.fillRect(i * SQUARE_SIZE, j * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE);
 
           // Update scores
           if (squares[i][j] === DAY_COLOR) dayScore++;
@@ -197,16 +192,10 @@
     }
 
     function checkBoundaryCollision(ball) {
-      if (
-        ball.x + ball.dx > canvas.width - SQUARE_SIZE / 2 ||
-        ball.x + ball.dx < SQUARE_SIZE / 2
-      ) {
+      if (ball.x + ball.dx > canvas.width - SQUARE_SIZE / 2 || ball.x + ball.dx < SQUARE_SIZE / 2) {
         ball.dx = -ball.dx;
       }
-      if (
-        ball.y + ball.dy > canvas.height - SQUARE_SIZE / 2 ||
-        ball.y + ball.dy < SQUARE_SIZE / 2
-      ) {
+      if (ball.y + ball.dy > canvas.height - SQUARE_SIZE / 2 || ball.y + ball.dy < SQUARE_SIZE / 2) {
         ball.dy = -ball.dy;
       }
     }
@@ -220,10 +209,8 @@
       ball.dy = Math.min(Math.max(ball.dy, -MAX_SPEED), MAX_SPEED);
 
       // Make sure the ball always maintains a minimum speed
-      if (Math.abs(ball.dx) < MIN_SPEED)
-        ball.dx = ball.dx > 0 ? MIN_SPEED : -MIN_SPEED;
-      if (Math.abs(ball.dy) < MIN_SPEED)
-        ball.dy = ball.dy > 0 ? MIN_SPEED : -MIN_SPEED;
+      if (Math.abs(ball.dx) < MIN_SPEED) ball.dx = ball.dx > 0 ? MIN_SPEED : -MIN_SPEED;
+      if (Math.abs(ball.dy) < MIN_SPEED) ball.dy = ball.dy > 0 ? MIN_SPEED : -MIN_SPEED;
     }
 
     function draw() {
