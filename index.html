@@ -201,8 +201,8 @@
     }
 
     function addRandomness(ball) {
-      ball.dx += Math.random() * 0.01 - 0.005;
-      ball.dy += Math.random() * 0.01 - 0.005;
+      ball.dx += Math.random() * 0.02 - 0.01;
+      ball.dy += Math.random() * 0.02 - 0.01;
 
       // Limit the speed of the ball
       ball.dx = Math.min(Math.max(ball.dx, -MAX_SPEED), MAX_SPEED);
