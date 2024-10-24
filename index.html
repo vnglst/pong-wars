@@ -231,10 +231,9 @@
 
       iteration++;
       if (iteration % 1_000 === 0) console.log("iteration", iteration);
-
-      requestAnimationFrame(draw);
     }
 
-    requestAnimationFrame(draw);
+    const FRAME_RATE = 100;
+    setInterval(draw, 1000 / FRAME_RATE);
   </script>
 </html>
