@@ -31,7 +31,7 @@ I love getting feedback and PRs with improvements for this, but I also want to k
 
 ## Alternate version
 
-If you've created an alternate version of Pong Wars and would like to share it, please feel free to create a pull request to add the link here. 
+If you've created an alternate version of Pong Wars and would like to share it, please feel free to create a pull request to add the link here.
 
 The alternate versions are listed below in alphabetical order:
 
@@ -64,3 +64,4 @@ The alternate versions are listed below in alphabetical order:
 - [Tag-Team](https://github.com/SSteve/pong-wars) ([Live](https://ssteve.github.io/pong-wars/))
 - [Yin-Yang Pong](https://ying-yang-pong.vercel.app/)
 - [Ying Yang](https://twitter.com/a__islam/status/1751485227787034863)
+- [M5Stack version](https://github.com/anoken/pong-wars-forM5Stack/)
