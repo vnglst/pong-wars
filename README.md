@@ -56,6 +56,7 @@ The alternate versions are listed below in alphabetical order:
 - [Processing](https://github.com/riktov/processing-pong-wars)
 - [Pygame version](https://github.com/BjoernSchilberg/py-pong-wars)
 - [Python](https://github.com/vocdex/pong-wars-python)
+- [Rock, Paper, Scissors, Lizard & Spock](https://kartikp36.github.io/rock-paper-scissors-lizard-spock/)
 - [React Native](https://github.com/Nodonisko/react-native-skia-pong-wars)
 - [Rust/Wasm](https://github.com/wasmhub-dev/pong_wars.rs)
 - [Scratch](https://scratch.mit.edu/projects/957461584)
