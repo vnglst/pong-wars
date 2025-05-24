@@ -61,6 +61,7 @@ The alternate versions are listed below in alphabetical order:
 - [Rust/Wasm](https://github.com/wasmhub-dev/pong_wars.rs)
 - [Scratch](https://scratch.mit.edu/projects/957461584)
 - [Seasons Pong](https://github.com/hmak-dev/seasons-pong)
+- [SwiftUI (Native)](https://github.com/1998code/pong-wars-swiftui)
 - [Swift (SpriteKit)](https://github.com/frederik-jacques/ios-pongwars)
 - [Tag-Team](https://github.com/SSteve/pong-wars) ([Live](https://ssteve.github.io/pong-wars/))
 - [Yin-Yang Pong](https://ying-yang-pong.vercel.app/)
