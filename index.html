@@ -136,22 +136,24 @@
       {
         x: canvas.width / 4,
         y: canvas.height / 2,
-        angle: 2 * Math.random() / 3 - 1 / 3, // radians [-1/3, 1/3)
+        initial_angle: 2 * Math.random() / 3 - 1 / 3, // radians [-1/3, 1/3)
         color: DAY_COLOR,
         ball_color: DAY_BALL_COLOR,
       },
       {
         x: (canvas.width / 4) * 3,
         y: canvas.height / 2-1,
-        angle: 2 * Math.random() / 3 - 1 / 3 + 1, // radians [2/3, 4/3)
+        initial_angle: 2 * Math.random() / 3 - 1 / 3 + 1, // radians [2/3, 4/3)
         color: NIGHT_COLOR,
         ball_color: NIGHT_BALL_COLOR,
       }
     ];
 
     BALLS.forEach((ball) => {
-      ball.dx = calc_dx_from_angle(ball.angle);
-      ball.dy = calc_dy_from_angle(ball.angle);
+      ball.v_velocity = {
+        x: calc_dx_from_angle(ball.initial_angle),
+        y: calc_dy_from_angle(ball.initial_angle)
+      }
       update_ball(ball);
     });
 
@@ -161,8 +163,8 @@
     }
 
     function move_ball(ball) {
-      ball.x += ball.dx;
-      ball.y += ball.dy;
+      ball.x += ball.v_velocity.x;
+      ball.y += ball.v_velocity.y;
     }
 
     function draw_ball(ball) {
@@ -206,11 +208,10 @@
         // Do not check this ball
         if (ball.color === this_ball.color) continue;
 
-        square.distance_x = get_distance_x(ball, square);
-        square.distance_y = get_distance_y(ball, square);
+        square.v_distance = get_distance_vector(ball, square);
 
         // ball is in square if distance is less than ball radius
-        if (xy_s_d(square.distance_x, square.distance_y, BALL_RADIUS)) {
+        if (v_smaller_d(square.v_distance, BALL_RADIUS)) {
           return true;
         }
       }
@@ -223,38 +224,46 @@
       square.x = square.sx * SQUARE_SIZE;
       return square.x <= ball.x && ball.x < square.x + SQUARE_SIZE
               ? 0
-              : Math.sign(square.x - ball.x) * Math.max(square.x - ball.x, ball.x - (square.x + SQUARE_SIZE));
+              : round_to_six_digits(Math.sign(square.x - ball.x) * Math.max(square.x - ball.x, ball.x - (square.x + SQUARE_SIZE - 1)));
     }
 
     function get_distance_y(ball, square) {
       square.y = square.sy * SQUARE_SIZE;
       return square.y <= ball.y && ball.y < square.y + SQUARE_SIZE
               ? 0
-              : Math.sign(square.y - ball.y) * Math.max(square.y - ball.y, ball.y - (square.y + SQUARE_SIZE));
+              : round_to_six_digits(Math.sign(square.y - ball.y) * Math.max(square.y - ball.y, ball.y - (square.y + SQUARE_SIZE - 1)));
     }
 
-    function xy_seq_d(x, y, d) {
-      return x * x + y * y <= d * d;
+    function get_distance_vector(ball, square) {
+      return {
+        x: get_distance_x(ball, square),
+        y: get_distance_y(ball, square)
+      }
     }
 
-    function xy_s_d(x, y, d) {
-      return x * x + y * y < d * d;
+    function v_smaller_or_equal_d(v, d) {
+      return v.x * v.x + v.y * v.y <= d * d;
     }
 
-    function get_cols_squares(ball) {
+    function v_smaller_d(v, d) {
+      return v.x * v.x + v.y * v.y < d * d;
+    }
+
+    function check_collision_squares(ball) {
       let squares_collision_candidates = [];
-      let squares_collision = [];
+      let v_cols_squares = [];
+      let squares_to_flip = [];
 
       // add all squares around ball square as collision candidates
       squares_collision_candidates.push(
-              { sx: ball.sx - 1, sy: ball.sy - 1 },
-              { sx: ball.sx - 1, sy: ball.sy },
-              { sx: ball.sx - 1, sy: ball.sy + 1 },
-              { sx: ball.sx, sy: ball.sy - 1 },
-              { sx: ball.sx, sy: ball.sy + 1 },
-              { sx: ball.sx + 1, sy: ball.sy - 1 },
-              { sx: ball.sx + 1, sy: ball.sy },
-              { sx: ball.sx + 1, sy: ball.sy + 1 }
+        {sx: ball.sx - 1, sy: ball.sy - 1},
+        {sx: ball.sx - 1, sy: ball.sy},
+        {sx: ball.sx - 1, sy: ball.sy + 1},
+        {sx: ball.sx, sy: ball.sy - 1},
+        {sx: ball.sx, sy: ball.sy + 1},
+        {sx: ball.sx + 1, sy: ball.sy - 1},
+        {sx: ball.sx + 1, sy: ball.sy},
+        {sx: ball.sx + 1, sy: ball.sy + 1}
       )
 
 
@@ -267,143 +276,120 @@
         }
 
         // check if square is of same color
-        if ( SQUARES[square.sx][square.sy] === ball.color) {
+        if (SQUARES[square.sx][square.sy] === ball.color) {
           continue;
         }
 
-        square.distance_x = get_distance_x(ball, square);
-        square.distance_y = get_distance_y(ball, square);
+        square.v_distance = get_distance_vector(ball, square);
 
-        if (xy_seq_d(square.distance_x, square.distance_y, BALL_RADIUS)) {
-          squares_collision.push(square);
+        // Check if square is too far away for a collision
+        if (!v_smaller_or_equal_d(square.v_distance, BALL_RADIUS)) {
+          continue;
         }
-      }
-      return squares_collision;
-    }
 
-    function calc_cols_ang(ball, square) {
-      if (square.distance_x === 0 && square.distance_y === 0) {
-        // collision angle = velocity angle
-        return ball.angle;
-      }
-      if (square.distance_y === 0) {
-        // collision angle = ex * sign(dx)
-        return -(1 / 2) * Math.sign(square.distance_x) + 1 / 2;
-      }
-      if (square.distance_x === 0) {
-        // collision angle = ey * sign(dy)
-        return -(1 / 2) * Math.sign(square.distance_y) + 1;
-      }
-      // collision angle = angle of distance
-      // angle between distance_x and distance_y from atan (-0.5, 0.5)
-      let col_ang = -round_to_six_digits(Math.atan(-square.distance_y / square.distance_x) / Math.PI);
+        // Collision!
+        let v_col;
+        if (square.v_distance.x === 0 && square.v_distance.y === 0) {
+          // collision vector = -velocity vector
+          v_col = {
+            x: -ball.dx,
+            y: -ball.dy
+          };
+        } else {
+          // collision vector = -distance vector
+          v_col = {
+              x: -square.v_distance.x,
+              y: -square.v_distance.y
+          };
+        }
 
-      // if collision is left we must add 180 degrees
-      if (Math.sign(square.distance_x) === -1) {
-        col_ang += 1;
-      }
-
-      // angles must be in range [0,2)
-      if (col_ang < 0) {
-        col_ang += 2;
-      }
-      return col_ang;
-    }
-
-    function get_boundary_collision_angles(ball) {
-      let angle_cols = [];
-
-      if (ball.x - BALL_RADIUS - 1 <= 0) {
-        angle_cols.push(1);
-      }
-      else if (ball.x + BALL_RADIUS >= SQUARE_SIZE * NUM_SQUARES_X) {
-        angle_cols.push(0);
-      }
-
-      if (ball.y - BALL_RADIUS - 1 <= 0) {
-        angle_cols.push(1.5);
-      }
-      else if (ball.y + BALL_RADIUS >= SQUARE_SIZE * NUM_SQUARES_Y) {
-        angle_cols.push(0.5);
-      }
-
-      return angle_cols;
-    }
-
-    function check_colls_and_bounce(ball) {
-      let angle_cols = [];
-      let squares_to_flip = [];
-
-      // Square Collisions
-      let squares_cols = get_cols_squares(ball);
-      for (let i = 0; i < squares_cols.length; i++) {
-        let square = squares_cols[i];
-        let angle_col = calc_cols_ang(ball, square);
-
-        // Do not flip square if any other ball is inside square but always reflect ball
         if (!is_any_other_ball_in_square(ball, square)) {
           squares_to_flip.push(square);
         }
-        angle_cols.push(angle_col);
+        // Do not flip square if any other ball is inside square but always reflect ball
+        v_cols_squares.push(v_col);
       }
 
-      // Boundary Collisions
-      angle_cols.push(...get_boundary_collision_angles(ball));
+      return {v_cols_squares, squares_to_flip};
+    }
 
-      // Determine bounce direction based on the collision angle
-      if (angle_cols.length >= 1) {
-        let angle_reflection;
+    function get_boundary_collision_vectors(ball) {
+      let v_cols = [];
 
-        // Multiple collisions must be combined by their mean difference
-        let angle_cols_sum = 0;
-        for (let i = 0; i < angle_cols.length; i++) {
-          let angle_col = angle_cols[i];
-
-          angle_cols_sum += angle_col;
-        }
-
-        let angle_cols_mean = round_to_six_digits(angle_cols_sum / angle_cols.length);
-        let angle_diffs_mean = round_to_six_digits(angle_cols_mean - ball.angle);
-
-        if (angle_diffs_mean >= 1) {
-          angle_diffs_mean -= 2;
-        }
-
-        // angles must be in range [0,2)
-        let angle_cols_inverted = angle_cols_mean < 1
-                ? angle_cols_mean + 1
-                : angle_cols_mean - 1;
-
-        angle_reflection = round_to_six_digits(angle_cols_inverted + angle_diffs_mean);
-
-        // angles must be in range [0,2)
-        while (angle_reflection >= 2) {
-          angle_reflection -= 2;
-        }
-
-        while (angle_reflection < 0) {
-          angle_reflection += 2;
-        }
-
-        ball.angle = angle_reflection;
-        ball.dx = calc_dx_from_angle(ball.angle);
-        ball.dy = calc_dy_from_angle(ball.angle);
+      if (ball.x - BALL_RADIUS - 1 <= 0) {
+        v_cols.push({x: 1, y: 0});
+      } else if (ball.x + BALL_RADIUS >= SQUARE_SIZE * NUM_SQUARES_X) {
+        v_cols.push({x: -1, y: 0});
       }
 
-      // flip square color and change scores
-      for (let i = 0; i < squares_to_flip.length; i++) {
-        const square_color_old = SQUARES[squares_to_flip[i].sx][squares_to_flip[i].sy];
+      if (ball.y - BALL_RADIUS - 1 <= 0) {
+        v_cols.push({x: 0, y: 1});
+      } else if (ball.y + BALL_RADIUS >= SQUARE_SIZE * NUM_SQUARES_Y) {
+        v_cols.push({x: 0, y: -1});
+      }
+
+      return v_cols;
+    }
+
+    function set_squares_color_and_scores(squares, color) {
+      for (let i = 0; i < squares.length; i++) {
+        const square_color_old = SQUARES[squares[i].sx][squares[i].sy];
 
         // ensure each square is only flipped once
-        if (square_color_old === ball.color) {
+        if (square_color_old === color) {
           continue;
         }
 
-        SQUARES[squares_to_flip[i].sx][squares_to_flip[i].sy] = ball.color;
+        SQUARES[squares[i].sx][squares[i].sy] = color;
 
-        SCORES[ball.color]++;
+        SCORES[color]++;
         SCORES[square_color_old]--;
       }
+    }
+
+    function get_mean_vector(ns) {
+      let n = {x: 0, y: 0};
+      for (let i = 0; i < ns.length; i++) {
+        n.x += ns[i].x;
+        n.y += ns[i].y;
+      }
+      n.x /= ns.length;
+      n.y /= ns.length;
+      return n;
+    }
+
+    function get_reflection_vector(d, n) {
+      // Calculate by formula: r = d - ( 2d·n / (||n||^2) ) * n
+      // with r: reflection vector; d: original vector; n: normal vector of surface
+      let ball_speed_v_col_dot_product = d.x * n.x + d.y * n.y;
+      let v_col_length_squared = n.x * n.x + n.y * n.y;
+      return {
+        x: d.x - 2 * ball_speed_v_col_dot_product / v_col_length_squared * n.x,
+        y: d.y - 2 * ball_speed_v_col_dot_product / v_col_length_squared * n.y
+      }
+    }
+
+    function check_collisions_and_bounce(ball) {
+      let v_cols = [];
+
+      // Square Collisions
+      let {v_cols_squares, squares_to_flip} = check_collision_squares(ball);
+      v_cols.push(...v_cols_squares);
+      set_squares_color_and_scores(squares_to_flip, ball.color);
+
+      // Boundary Collisions
+      v_cols.push(...get_boundary_collision_vectors(ball));
+
+      if (v_cols.length === 0) {
+        // No collisions -> No bounce
+        return;
+      }
+
+      // Collisions -> Determine bounce direction based on the collision angles
+      // Multiple collisions must be combined into one mean vector
+      let v_col_mean = get_mean_vector(v_cols);
+
+      ball.v_velocity = get_reflection_vector(ball.v_velocity, v_col_mean);
     }
 
     function update_score_element() {
@@ -423,7 +409,7 @@
 
       for (let step = 0; step < SPEED; step++) {
         BALLS.forEach((ball) => {
-          check_colls_and_bounce(ball);
+          check_collisions_and_bounce(ball);
           move_ball(ball);
           update_ball(ball);
         });
