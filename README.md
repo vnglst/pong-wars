@@ -69,3 +69,9 @@ The alternate versions are listed below in alphabetical order:
 - [Ying Yang](https://twitter.com/a__islam/status/1751485227787034863)
 - [M5Stack version](https://github.com/anoken/pong-wars-forM5Stack/)
 - [Hex version](https://pong-wars-hex.whichoneiwonder.com/)
+
+
+## やりたいこと
+1. 55秒間バトル
+2. 55秒経ったら５秒間画面いっぱいに勝敗表示
+3. 録画した動画(1分)をインスタに自動投稿
