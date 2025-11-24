@@ -80,9 +80,10 @@
         font-size: 48px;
         font-weight: bold;
         text-align: center;
-        z-index: 1000;
+        z-index: 9999;
         color: white;
         text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+        pointer-events: none;
       }
 
       #result.day-wins {
@@ -192,16 +193,22 @@
     let iteration = 0;
     let gameStartTime = Date.now();
     let resultShown = false;
+    let battleEnded = false;
+
+    let showingResult = false;
+    let winner = '';
+    let finalScoreText = '';
+    let winnerClass = '';
 
     function showResult() {
       if (resultShown) return;
       resultShown = true;
+      showingResult = true;
 
       const resultDiv = document.getElementById('result');
       const winnerText = document.getElementById('winner-text');
       const finalScore = document.getElementById('final-score');
 
-      let winner, winnerClass;
       if (dayScore > nightScore) {
         winner = 'DAY WINS!';
         winnerClass = 'day-wins';
@@ -213,19 +220,75 @@
         winnerClass = dayScore > 0 ? 'day-wins' : 'night-wins';
       }
 
+      finalScoreText = `DAY: ${dayScore} | NIGHT: ${nightScore}`;
+
       winnerText.textContent = winner;
-      finalScore.textContent = `DAY: ${dayScore} | NIGHT: ${nightScore}`;
+      finalScore.textContent = finalScoreText;
       
-      resultDiv.className = winnerClass;
+      // クラスをクリアしてから新しいクラスを追加
+      resultDiv.className = '';
+      resultDiv.classList.add(winnerClass);
+      
+      // 確実に表示されるように設定
       resultDiv.style.display = 'flex';
+      resultDiv.style.visibility = 'visible';
+      resultDiv.style.opacity = '1';
+      resultDiv.style.zIndex = '9999';
 
       console.log(`55秒経過: ${winner} (DAY: ${dayScore}, NIGHT: ${nightScore})`);
+      console.log('結果画面を表示中...');
 
       // 5秒後に結果画面を非表示
       setTimeout(() => {
+        showingResult = false;
         resultDiv.style.display = 'none';
+        resultDiv.style.visibility = 'hidden';
+        resultDiv.style.opacity = '0';
         console.log('結果表示終了');
       }, 5000);
+    }
+
+    // Canvas上に結果画面を描画する関数
+    function drawResultOnCanvas() {
+      if (!showingResult) return;
+
+      // 背景色を設定
+      let bgColor, textColor;
+      if (winnerClass === 'day-wins') {
+        bgColor = '#D9E8E3';
+        textColor = '#172B36';
+      } else {
+        bgColor = '#172B36';
+        textColor = '#D9E8E3';
+      }
+
+      // 背景を描画
+      ctx.fillStyle = bgColor;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // 勝者テキストを描画
+      ctx.fillStyle = textColor;
+      ctx.font = 'bold 64px monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      
+      // テキストに影を追加
+      ctx.shadowColor = winnerClass === 'day-wins' ? 'rgba(23, 43, 54, 0.3)' : 'rgba(0, 0, 0, 0.7)';
+      ctx.shadowOffsetX = 2;
+      ctx.shadowOffsetY = 2;
+      ctx.shadowBlur = 4;
+      
+      ctx.fillText(winner, canvas.width / 2, canvas.height / 2 - 40);
+
+      // スコアテキストを描画
+      ctx.font = '32px monospace';
+      ctx.fillText(finalScoreText, canvas.width / 2, canvas.height / 2 + 40);
+
+      // 影をリセット
+      ctx.shadowColor = 'transparent';
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 0;
+      ctx.shadowBlur = 0;
     }
 
     // Instagram API設定
@@ -342,6 +405,7 @@
             formData.append('source', mp4Blob, 'pong-wars-battle.mp4');
             formData.append('caption', `🎮 Pong Wars Battle Results! 
 55 seconds of epic day vs night battle!
+Score included in video!
             
 #PongWars #DayVsNight #Battle #GameDev #JavaScript #Canvas #Animation`);
             formData.append('access_token', accessToken);
@@ -400,6 +464,7 @@
             </ol>
             <p><strong>推奨キャプション:</strong><br>
             🎮 Pong Wars Battle Results!<br>
+            55秒間の激戦 + スコア表示付き<br>
             #PongWars #DayVsNight #Battle</p>
             <button onclick="this.parentElement.remove()">閉じる</button>
           </div>
@@ -485,6 +550,12 @@
     }
 
     function draw() {
+      // 結果表示中は結果画面のみを描画
+      if (showingResult) {
+        drawResultOnCanvas();
+        return;
+      }
+
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       drawSquares();
 
@@ -492,19 +563,34 @@
 
       // 55秒経過チェック
       const elapsed = Date.now() - gameStartTime;
-      if (elapsed >= 55000 && !resultShown) { // 55秒 = 55,000ミリ秒
+      if (elapsed >= 55000 && !battleEnded) { // 55秒 = 55,000ミリ秒
+        battleEnded = true;
         showResult();
+        console.log('バトル終了: ボールの動きを停止');
       }
 
-      balls.forEach((ball) => {
-        drawBall(ball);
-        checkSquareCollision(ball);
-        checkBoundaryCollision(ball);
-        ball.x += ball.dx;
-        ball.y += ball.dy;
+      // バトル終了後はボールを停止
+      if (!battleEnded) {
+        balls.forEach((ball) => {
+          drawBall(ball);
+          checkSquareCollision(ball);
+          checkBoundaryCollision(ball);
+          ball.x += ball.dx;
+          ball.y += ball.dy;
 
-        addRandomness(ball);
-      });
+          addRandomness(ball);
+        });
+      } else {
+        // バトル終了後もボールは描画するが動かさない
+        balls.forEach((ball) => {
+          drawBall(ball);
+        });
+      }
+
+      // 録画用にcanvasにスコアを描画（録画に含めるため）
+      if (!showingResult) {
+        drawScoreOnCanvas();
+      }
 
       iteration++;
       if (iteration % 1_000 === 0) console.log("iteration", iteration);
@@ -513,9 +599,47 @@
     const FRAME_RATE = 100;
     setInterval(draw, 1000 / FRAME_RATE);
 
-    // 録画機能
-    const stream = canvas.captureStream(FRAME_RATE);
-    const mediaRecorder = new MediaRecorder(stream, {
+    // 録画機能 - コンテナ全体（canvas + スコア表示）を録画
+    // HTMLElementのcaptureStreamは一部ブラウザでサポートされていないため、
+    // Screen Capture APIまたはcanvasのみの録画を使用
+    let stream;
+    
+    // Screen Capture APIを試行（ユーザー操作が必要）
+    async function startRecording() {
+      try {
+        // getDisplayMediaを使用してスクリーン録画を試行
+        if (navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) {
+          console.log('Screen Capture APIを使用してコンテナ全体を録画します');
+          // Note: 実際の使用では、ユーザーがコンテナ部分を選択する必要があります
+          // 自動的にはできないため、canvas録画にフォールバック
+        }
+        
+        // フォールバック: canvas録画 + スコア表示をcanvasに描画
+        stream = canvas.captureStream(FRAME_RATE);
+        console.log('Canvas録画を開始（スコア表示をcanvasに合成）');
+        
+      } catch (error) {
+        console.warn('Screen Capture失敗、canvas録画にフォールバック:', error);
+        stream = canvas.captureStream(FRAME_RATE);
+      }
+      
+      return stream;
+    }
+
+    // 録画用のcanvasにスコアを描画する関数
+    function drawScoreOnCanvas() {
+      const scoreText = `DAY: ${dayScore} | NIGHT: ${nightScore}`;
+      ctx.save();
+      ctx.font = '20px monospace';
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+      ctx.fillRect(10, canvas.height - 40, 300, 30);
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillText(scoreText, 15, canvas.height - 20);
+      ctx.restore();
+    }
+    
+    const recordingStream = canvas.captureStream(FRAME_RATE);
+    const mediaRecorder = new MediaRecorder(recordingStream, {
       mimeType: 'video/webm;codecs=vp9',
       videoBitsPerSecond: 5000000
     });
@@ -530,7 +654,7 @@
 
     mediaRecorder.onstop = () => {
       const blob = new Blob(recordedChunks, { type: 'video/webm' });
-      console.log('録画完了: 1分間のバトル動画が完成しました');
+      console.log('録画完了: 60秒間の動画が完成しました（55秒バトル + 5秒結果表示、スコア表示込み）');
       
       // Instagram投稿処理を実行
       uploadToInstagram(blob);
@@ -538,11 +662,12 @@
 
     // 録画開始
     mediaRecorder.start();
-    console.log('録画開始: 1分間録画します...');
+    console.log('録画開始: 60秒間録画します（55秒バトル + 5秒結果表示）...');
 
-    // 1分後に録画停止
+    // 60秒後に録画停止（55秒バトル + 5秒結果表示）
     setTimeout(() => {
       mediaRecorder.stop();
-    }, 1 * 60 * 1000); // 1分 = 60,000ミリ秒
+      console.log('録画停止: 60秒経過');
+    }, 60 * 1000); // 60秒 = 60,000ミリ秒
   </script>
 </html>
