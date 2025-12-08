@@ -43,6 +43,7 @@ The alternate versions are listed below in alphabetical order:
 - [C# with DIKUArcade](https://github.com/Roar-Morkore-Hansen/pong-wars.git)
 - [C++](https://invent.kde.org/carlschwan/pongwars/-/blob/master/src/scene.cpp?ref_type=heads)
 - [C++ with SFML](https://github.com/Alan-Kuan/pong-wars)
+- [Combat Pong](https://www.combatpong.com/)
 - [Earlier version with padels](https://twitter.com/CasualEffects/status/1390290306206216196)
 - [Eternal Bounce Battle (GDevelop)](https://gd.games/victrisgames/eternal-bounce-battle)
 - [Flutter](https://github.com/flikkr/flutter_pong_wars)
