@@ -72,3 +72,4 @@ The alternate versions are listed below in alphabetical order:
 - [Hex version](https://pong-wars-hex.whichoneiwonder.com/)
 - [Bevy](https://github.com/andyleclair/bevy_pong_wars)
 - [Atari ST](https://github.com/neilrackett/atarist-pong-wars.git)
+- [Three.js](https://labs.mesmotronic.com/three-labs/pong-wars-3d/)
