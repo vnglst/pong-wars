@@ -47,7 +47,7 @@ The alternate versions are listed below in alphabetical order:
 - [Earlier version with padels](https://twitter.com/CasualEffects/status/1390290306206216196)
 - [Eternal Bounce Battle (GDevelop)](https://gd.games/victrisgames/eternal-bounce-battle)
 - [Flutter](https://github.com/flikkr/flutter_pong_wars)
-- [Framework 16 LED Matrix](https://github.com/boobcactus/fw16-pong-wars)
+- [Framework 16 LED Matrix](https://github.com/boobcactus/fw16-pongwars)
 - [Godot](https://github.com/rosskarchner/pong-wars-godot)
 - [Gold Wars (This version has an end!)](https://ask5.github.io/gold-wars/)
 - [Java](https://github.com/krefikk/yingyang)
