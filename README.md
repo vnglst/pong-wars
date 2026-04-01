@@ -55,6 +55,7 @@ The alternate versions are listed below in alphabetical order:
 - [Land-Or-Water](https://github.com/makaveli2P/land-or-water)
 - [Pico8](https://www.pico-8-edu.com/?c=AHB4YQHaAT3vsH558QbF5cXZxd3F_Uedc010zTVJ_gCnN3F6-RNE_SuEUXRRUa8tpK9wzE3nZMedcvntx9y1MpRnV4Xp0v3ZTrm0EUzMSQTsOWBuJL5-8C2Cl0gG0vK2sXTtKYyQN81iujMXPUN03Vq0FGXNajPzGtHOXUGgE3zegFI4hIIzoYCyC7ITgzcogmTuIaba7Nqzz48mh5JFxYFgKllpExWB7ZVnKAaH5qvd3SzqTLA0aZrR1Wy0GFywwsjUQhgOznQ3jtx6QCkisOCWvA9ngqFsZXMnFyKJhkynGFYEyZmCBcaIkk5BMF3YVRBX7RcFcZtGQbRQEN9GU_uMVEkSiRNn_aR55AmGqmBbiigfGuqybCXz5QnZI3W_Lutw2Ph4FOMn6Scn0lBgoSsFi3KlgIGpya1iYRY=&g=w-w-w-w1HQHw-w2Xw-w3Xw-w2HQH)
 - [Pong-Wars Fireballs](https://pong-wars-fireballs.vercel.app)
+- [Pong Wars Reloaded (Multiplayer with rackets, powerups, AI)](https://mayerwin.github.io/pong-wars-reloaded/)
 - [Processing](https://github.com/riktov/processing-pong-wars)
 - [Pygame version](https://github.com/BjoernSchilberg/py-pong-wars)
 - [Python](https://github.com/vocdex/pong-wars-python)
