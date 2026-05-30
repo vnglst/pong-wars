@@ -74,3 +74,4 @@ The alternate versions are listed below in alphabetical order:
 - [Bevy](https://github.com/andyleclair/bevy_pong_wars)
 - [Atari ST](https://github.com/neilrackett/atarist-pong-wars.git)
 - [Three.js](https://labs.mesmotronic.com/three-labs/pong-wars-3d/)
+- [Svelte (State is shared across all viewers)](https://dtdg.fr/pong/)
