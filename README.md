@@ -67,6 +67,7 @@ The alternate versions are listed below in alphabetical order:
 - [SwiftUI (Native)](https://github.com/1998code/pong-wars-swiftui)
 - [Swift (SpriteKit)](https://github.com/frederik-jacques/ios-pongwars)
 - [Tag-Team](https://github.com/SSteve/pong-wars) ([Live](https://ssteve.github.io/pong-wars/))
+- [ThunderPong (paddles, wind, power-ups, online multiplayer)](https://3210.lu/thunderpong/) ([Multiplayer](https://3210.lu/thunderpong/mp/))
 - [Yin-Yang Pong](https://ying-yang-pong.vercel.app/)
 - [Ying Yang](https://twitter.com/a__islam/status/1751485227787034863)
 - [M5Stack version](https://github.com/anoken/pong-wars-forM5Stack/)
